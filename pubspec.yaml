@@ -1,0 +1,23 @@
+name: score_board
+description: A new Flutter application for counting the score of a cricket match
+version: 1.0.0+1
+# version: Build Version String+Build Number
+
+environment:
+  sdk: ">=2.6.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^0.1.3
+  google_fonts:
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+
+flutter:
+  uses-material-design: true
+#  assets:
+
