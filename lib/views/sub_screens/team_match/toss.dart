@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:score_board/views/widgets/flat_rounded_button.dart';
+import 'package:score_board/views/widgets/toss_decision_dialog.dart';
 
 class Toss extends StatefulWidget {
   final Function onNextPress;
@@ -109,8 +110,8 @@ class _TossState extends State<Toss> with SingleTickerProviderStateMixin {
                         },
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 20.0),
-                        child: Text(tossResult),
+                        padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 40.0),
+                        child: Text(tossResult, textAlign: TextAlign.center, style: TextStyle(fontSize: 20),),
                       ),
                       FlatButton(
                         child: Text("Toss"),
@@ -127,15 +128,28 @@ class _TossState extends State<Toss> with SingleTickerProviderStateMixin {
                             });
                           });
 
-                          Future.delayed(Duration(seconds: 3), () {
+                          Future.delayed(Duration(seconds: 3), () async {
                             _timer.cancel();
                             final randomToss = new Random().nextBool();
+                            String winningTeam = randomToss == firstTeamHead
+                                ? "First Team"
+                                : "Second Team";
+
+                            final result = await showDialog(
+                              barrierDismissible: false,
+                              context: context,
+                              builder: (BuildContext _context) {
+                                // return object of type Dialog
+                                return TossDecisionDialog(
+                                  winningTeam: winningTeam,
+                                );
+                              },
+                            );
+
                             setState(() {
                               coinText = randomToss ? "HEAD" : "TAILS";
                               rotationX = 0;
-                              tossResult = randomToss == firstTeamHead
-                                  ? "First team won the toss"
-                                  : "Second team won the toss";
+                              tossResult = "$winningTeam won the toss and elected to ${result ? "BAT" : "FIELD"} first";
                             });
                           });
                         },

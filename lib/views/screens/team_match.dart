@@ -70,7 +70,11 @@ class _TeamMatchState extends State<TeamMatch> {
             Toss(
               onNextPress: _goToNextPage,
             ),
-            Summery(),
+            Summery(
+              onConfirmPress: (){
+                Navigator.of(context).pop();
+              },
+            ),
           ],
         ),
       ),
