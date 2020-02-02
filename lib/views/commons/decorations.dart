@@ -11,3 +11,8 @@ final generalCardDecoration = BoxDecoration(
     ),
   ],
 );
+
+final scoreControlDecoration = BoxDecoration(
+  color: Color(0xffd8d8d8),
+  borderRadius: BorderRadius.circular(5.0),
+);
