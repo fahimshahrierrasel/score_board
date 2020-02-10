@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:score_board/views/commons/app_theme.dart';
-import 'package:score_board/views/screens/home_page.dart';
+import 'package:score_board/data/db_models/schema.dart';
+import 'package:score_board/views/score_board_app.dart';
+import 'package:sqlcool/sqlcool.dart';
 
-void main() => runApp(MyApp());
+final appDb = new Db();
 
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Score Board',
-      theme: getAppTheme(context),
-      home: HomePage(),
-    );
-  }
+void main() {
+  runApp(ScoreBoardApp());
+  initDb(appDb);
+}
 
-
+Future<void> initDb(Db db) async {
+  final databasePath = "scoreboard.db";
+  await db.init(path: databasePath, schema: schema).catchError((error) {
+    print("Database Initialization Error: $error");
+  });
 }
