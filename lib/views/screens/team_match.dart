@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:score_board/viewmodels/match_config_viewmodel.dart';
 import 'package:score_board/views/sub_screens/team_match/team_match.dart';
 
 
@@ -11,6 +13,8 @@ class _TeamMatchState extends State<TeamMatch> {
   int currentStep = 0;
   PageController _pageController;
   String title = "Match Configuration";
+  String firstTeamName = "First Team";
+  String secondTeamName = "Second Team";
 
   @override
   void initState() {
@@ -20,9 +24,9 @@ class _TeamMatchState extends State<TeamMatch> {
           if (currentStep == 0)
             title = "Match Configuration";
           if (currentStep == 1)
-            title = "First Team Players";
+            title = "$firstTeamName Players";
           else if (currentStep == 2)
-            title = "Second Team Players";
+            title = "$secondTeamName Players";
           else if (currentStep == 3)
             title = "Toss";
           else if (currentStep == 4)
@@ -30,6 +34,14 @@ class _TeamMatchState extends State<TeamMatch> {
         });
       });
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final configViewModel = Provider.of<MatchConfigViewModel>(context);
+    firstTeamName = configViewModel.firstTeamName;
+    secondTeamName = configViewModel.secondTeamName;
   }
 
   void _goToNextPage(){
@@ -41,6 +53,7 @@ class _TeamMatchState extends State<TeamMatch> {
 
   @override
   Widget build(BuildContext context) {
+    final configViewModel = Provider.of<MatchConfigViewModel>(context);
     return Scaffold(
       appBar: AppBar(title: Text(title),),
       body: WillPopScope(
@@ -49,6 +62,7 @@ class _TeamMatchState extends State<TeamMatch> {
             currentStep = currentStep - 1;
           });
           if (currentStep < 0) {
+            configViewModel.reset();
             return new Future(() => true);
           }
           _pageController.jumpToPage(currentStep);

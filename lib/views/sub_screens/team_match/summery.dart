@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:score_board/viewmodels/match_config_viewmodel.dart';
 import 'package:score_board/views/commons/decorations.dart';
 import 'package:score_board/views/widgets/flat_rounded_button.dart';
 
@@ -9,6 +11,7 @@ class Summery extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final configViewModel = Provider.of<MatchConfigViewModel>(context);
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -18,10 +21,10 @@ class Summery extends StatelessWidget {
               text: "Details".toUpperCase(),
             ),
             Tab(
-              text: "Team A".toUpperCase(),
+              text: configViewModel.firstTeamName.toUpperCase(),
             ),
             Tab(
-              text: "Team B".toUpperCase(),
+              text: configViewModel.secondTeamName.toUpperCase(),
             ),
           ],
         ),
@@ -31,8 +34,12 @@ class Summery extends StatelessWidget {
               child: TabBarView(
                 children: <Widget>[
                   MatchDetails(),
-                  PlayerList(),
-                  PlayerList(),
+                  PlayerList(
+                    teamNo: TeamNo.FIRST,
+                  ),
+                  PlayerList(
+                    teamNo: TeamNo.SECOND,
+                  ),
                 ],
               ),
             ),
@@ -53,12 +60,13 @@ class Summery extends StatelessWidget {
 class MatchDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final configViewModel = Provider.of<MatchConfigViewModel>(context);
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Column(
         children: <Widget>[
           Text(
-            "Team A",
+            configViewModel.firstTeamName,
             style: TextStyle(
               color: Theme.of(context).primaryColor,
               fontSize: 24,
@@ -70,7 +78,7 @@ class MatchDetails extends StatelessWidget {
             child: Text("VS"),
           ),
           Text(
-            "Team B",
+            configViewModel.secondTeamName,
             style: TextStyle(
               color: Theme.of(context).primaryColor,
               fontSize: 24,
@@ -89,7 +97,7 @@ class MatchDetails extends StatelessWidget {
                 ),
               ),
               subtitle: Text(
-                "7 Players",
+                "${configViewModel.numberOfPlayer} Players",
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
                 ),
@@ -108,7 +116,7 @@ class MatchDetails extends StatelessWidget {
                 ),
               ),
               subtitle: Text(
-                "20 Overs",
+                "${configViewModel.numberOfOvers} Overs",
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
                 ),
@@ -127,7 +135,7 @@ class MatchDetails extends StatelessWidget {
                 ),
               ),
               subtitle: Text(
-                "4 Overs",
+                "${configViewModel.maxOverPerBowler} Overs",
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
                 ),
@@ -146,7 +154,7 @@ class MatchDetails extends StatelessWidget {
                 ),
               ),
               subtitle: Text(
-                "Team A won the toss and elected to BAT first",
+                "${configViewModel.tossWinningTeam == TeamNo.FIRST ? configViewModel.firstTeamName : configViewModel.secondTeamName} won the toss and elected to ${configViewModel.tossWinnerElectedType == TossWinningType.BATTING ? "BAT" : "FIELDING"} first",
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
                 ),
@@ -160,22 +168,42 @@ class MatchDetails extends StatelessWidget {
 }
 
 class PlayerList extends StatelessWidget {
+  final TeamNo teamNo;
+  final playerTypeIcon = const [
+    "assets/images/bat.png",
+    "assets/images/ball.png",
+    "assets/images/all_rounder.png"
+  ];
+
+  const PlayerList({Key key, @required this.teamNo}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    final configViewModel = Provider.of<MatchConfigViewModel>(context);
     return ListView.builder(
-      itemCount: 11,
+      itemCount: configViewModel.numberOfPlayer,
       itemBuilder: (_, index) {
-        final icon = index % 2 == 0
-            ? "assets/images/bat.png"
-            : index % 3 == 0
-                ? "assets/images/all_rounder.png"
-                : "assets/images/ball.png";
+        String name = "";
+        if (teamNo == TeamNo.FIRST)
+          name =
+              "${configViewModel.firstTeamFirstName[index]} ${configViewModel.firstTeamLastName[index]}";
+        else
+          name =
+              "${configViewModel.secondTeamFirstName[index]} ${configViewModel.secondTeamLastName[index]}";
+        final type = teamNo == TeamNo.FIRST
+            ? configViewModel.firstTeamPlayerType[index]
+            : configViewModel.secondTeamPlayerType[index];
         return Container(
           margin: EdgeInsets.only(top: 10),
           decoration: generalCardDecoration,
           child: ListTile(
-            trailing: Image.asset(icon, height: 20, width: 20,),
-            title: Text("Fahim Shahrier Rasel",),
+            trailing: Image.asset(
+              playerTypeIcon[type],
+              height: 20,
+              width: 20,
+            ),
+            title: Text(
+              name,
+            ),
           ),
         );
       },

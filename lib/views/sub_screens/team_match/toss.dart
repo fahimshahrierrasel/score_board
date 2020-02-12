@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:score_board/viewmodels/match_config_viewmodel.dart';
+import 'package:score_board/views/widgets/coin_side.dart';
 import 'package:score_board/views/widgets/flat_rounded_button.dart';
 import 'package:score_board/views/widgets/toss_decision_dialog.dart';
 
@@ -22,6 +25,19 @@ class _TossState extends State<Toss> with SingleTickerProviderStateMixin {
   String tossResult = "";
   Timer _timer;
   double rotationX = 100;
+  String firstTeamName;
+  String secondTeamName;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final configViewModel = Provider.of<MatchConfigViewModel>(context);
+    firstTeamName = configViewModel.firstTeamName;
+    secondTeamName = configViewModel.secondTeamName;
+    if (configViewModel.tossWinningTeam != null)
+      tossResult =
+          "${configViewModel.tossWinningTeam == TeamNo.FIRST ? configViewModel.firstTeamName : configViewModel.secondTeamName} won the toss and elected to ${configViewModel.tossWinnerElectedType == TossWinningType.BATTING ? "BAT" : "FIELDING"} first";
+  }
 
   @override
   void initState() {
@@ -37,6 +53,7 @@ class _TossState extends State<Toss> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final configViewModel = Provider.of<MatchConfigViewModel>(context);
     return Container(
       padding: EdgeInsets.all(10),
       child: Column(
@@ -50,7 +67,7 @@ class _TossState extends State<Toss> with SingleTickerProviderStateMixin {
                   children: <Widget>[
                     Expanded(
                       child: Text(
-                        "Team A",
+                        firstTeamName,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             fontSize: 24, fontWeight: FontWeight.bold),
@@ -65,7 +82,7 @@ class _TossState extends State<Toss> with SingleTickerProviderStateMixin {
                     ),
                     Expanded(
                       child: Text(
-                        "Team B",
+                        secondTeamName,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             fontSize: 24, fontWeight: FontWeight.bold),
@@ -110,8 +127,13 @@ class _TossState extends State<Toss> with SingleTickerProviderStateMixin {
                         },
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 40.0),
-                        child: Text(tossResult, textAlign: TextAlign.center, style: TextStyle(fontSize: 20),),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 20.0, horizontal: 40.0),
+                        child: Text(
+                          tossResult,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 20),
+                        ),
                       ),
                       FlatButton(
                         child: Text("Toss"),
@@ -132,8 +154,8 @@ class _TossState extends State<Toss> with SingleTickerProviderStateMixin {
                             _timer.cancel();
                             final randomToss = new Random().nextBool();
                             String winningTeam = randomToss == firstTeamHead
-                                ? "First Team"
-                                : "Second Team";
+                                ? firstTeamName
+                                : secondTeamName;
 
                             final result = await showDialog(
                               barrierDismissible: false,
@@ -149,8 +171,16 @@ class _TossState extends State<Toss> with SingleTickerProviderStateMixin {
                             setState(() {
                               coinText = randomToss ? "HEAD" : "TAILS";
                               rotationX = 0;
-                              tossResult = "$winningTeam won the toss and elected to ${result ? "BAT" : "FIELD"} first";
+                              tossResult =
+                                  "$winningTeam won the toss and elected to ${result ? "BAT" : "FIELD"} first";
                             });
+                            configViewModel.setTossResult(
+                                randomToss == firstTeamHead
+                                    ? TeamNo.FIRST
+                                    : TeamNo.SECOND,
+                                result
+                                    ? TossWinningType.BATTING
+                                    : TossWinningType.FIELDING);
                           });
                         },
                       )
@@ -162,59 +192,16 @@ class _TossState extends State<Toss> with SingleTickerProviderStateMixin {
           ),
           FlatRoundedButton(
             title: "Next",
-            onPress: widget.onNextPress,
+            onPress: () {
+              if (configViewModel.tossWinningTeam != null)
+                widget.onNextPress();
+              else
+                Scaffold.of(context).showSnackBar(SnackBar(
+                  content: Text("You need to toss first."),
+                ));
+            },
           )
         ],
-      ),
-    );
-  }
-}
-
-class CoinSide extends StatelessWidget {
-  final String title;
-  final Function coinClicked;
-  final double rotationX;
-
-  const CoinSide({
-    Key key,
-    @required this.title,
-    this.coinClicked,
-    this.rotationX = 0,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Transform(
-      alignment: FractionalOffset.center,
-      transform: Matrix4.identity()..rotateX(rotationX),
-      child: Container(
-        width: 100,
-        height: 100,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              offset: Offset(0, 3.0),
-              blurRadius: 6,
-            ),
-          ],
-        ),
-        child: new Material(
-          color: Colors.transparent,
-          clipBehavior: Clip.hardEdge,
-          shape: CircleBorder(),
-          child: new InkWell(
-            onTap: coinClicked,
-            child: Center(
-              child: Text(
-                title,
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

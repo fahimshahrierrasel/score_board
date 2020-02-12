@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 class PlayerTypeRadioGroup extends StatelessWidget {
-  final int groupVale;
+  final int groupValue;
   final Function onChange;
 
-  const PlayerTypeRadioGroup({Key key, this.groupVale, this.onChange})
+  const PlayerTypeRadioGroup({Key key, this.groupValue, this.onChange})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
@@ -16,7 +16,7 @@ class PlayerTypeRadioGroup extends StatelessWidget {
           children: <Widget>[
             Radio<int>(
               value: 0,
-              groupValue: groupVale,
+              groupValue: groupValue,
               onChanged: onChange,
             ),
             Text("Batsman")
@@ -26,7 +26,7 @@ class PlayerTypeRadioGroup extends StatelessWidget {
           children: <Widget>[
             Radio<int>(
               value: 1,
-              groupValue: groupVale,
+              groupValue: groupValue,
               onChanged: onChange,
             ),
             Text("Bowler")
@@ -36,7 +36,7 @@ class PlayerTypeRadioGroup extends StatelessWidget {
           children: <Widget>[
             Radio<int>(
               value: 2,
-              groupValue: groupVale,
+              groupValue: groupValue,
               onChanged: onChange,
             ),
             Text("All Rounder")

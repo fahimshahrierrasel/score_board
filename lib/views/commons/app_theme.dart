@@ -99,8 +99,8 @@ ThemeData getAppTheme(BuildContext context) {
         fontStyle: FontStyle.normal,
       ),
       errorStyle: TextStyle(
-        color: Color(0xdd000000),
-        fontSize: 16.0,
+        color: Colors.red,
+        fontSize: 12.0,
         fontWeight: FontWeight.w400,
         fontStyle: FontStyle.normal,
       ),

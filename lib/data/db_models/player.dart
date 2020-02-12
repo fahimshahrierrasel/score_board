@@ -6,11 +6,12 @@ class Player with DbModel {
   @override
   int id;
 
-  final String name;
+  final String firstName;
+  final String lastName;
   final String type;
   final int teamId;
 
-  Player({this.id, this.name, this.type, this.teamId});
+  Player({this.id, this.firstName, this.lastName, this.type, this.teamId});
 
   @override
   Db get db => appDb;
@@ -19,13 +20,18 @@ class Player with DbModel {
   DbTable get table => playerTable;
 
   @override
-  Map<String, dynamic> toDb() =>
-      {"name": name, "type": type, "team_id": teamId};
+  Map<String, dynamic> toDb() => {
+        "first_name": firstName,
+        "last_name": lastName,
+        "type": type,
+        "team_id": teamId
+      };
 
   @override
   DbModel fromDb(Map<String, dynamic> map) => Player(
         id: map['id'] as int,
-        name: map['name'] as String,
+        firstName: map['first_name'] as String,
+        lastName: map['last_name'] as String,
         type: map['type'] as String,
         teamId: map['team_id'] as int,
       );
