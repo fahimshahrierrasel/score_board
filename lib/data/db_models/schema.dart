@@ -18,8 +18,9 @@ final teamTable = DbTable(teamTableName)
 const playerTableName = "players";
 final playerTable = DbTable(playerTableName)
   ..index('id')
-  ..varchar('name')
-  ..varchar('type')
+  ..varchar('first_name')
+  ..varchar('last_name')
+  ..integer('type')
   ..integer('team_id');
 
 const seriesTableName = "series";

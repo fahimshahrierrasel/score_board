@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:score_board/data/db_models/match.dart';
+import 'package:score_board/viewmodels/match_list_viewmodel.dart';
 import 'package:score_board/views/commons/decorations.dart';
 import 'package:score_board/views/screens/current_match_page.dart';
 
 class CurrentMatchCard extends StatelessWidget {
   final isMatchRunning;
+  final Match match;
 
-  const CurrentMatchCard({Key key, this.isMatchRunning = false})
+  const CurrentMatchCard({Key key, this.isMatchRunning = false, this.match})
       : super(key: key);
   @override
   Widget build(BuildContext context) {
+    final matchListViewModel = Provider.of<MatchListViewModel>(context);
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: generalCardDecoration,
@@ -35,7 +40,7 @@ class CurrentMatchCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       Text(
-                        "Team A",
+                        matchListViewModel.teams.firstWhere((team) => team.id == match.teams.teamOneId).name,
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -59,7 +64,7 @@ class CurrentMatchCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        "Team B",
+                        matchListViewModel.teams.firstWhere((team) => team.id == match.teams.teamTwoId).name,
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -70,13 +75,13 @@ class CurrentMatchCard extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
-                      "8 Players on Each Team",
+                      "${match.configuration.playersPerTeam} Players on Each Team",
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
-                      "Total 16 Overs",
+                      "Total ${match.configuration.totalOvers} Overs",
                     ),
                   ),
                 ],
