@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:score_board/helpers/constants.dart';
 import 'package:score_board/viewmodels/match_config_viewmodel.dart';
+import 'package:score_board/viewmodels/view_state.dart';
 import 'package:score_board/views/commons/decorations.dart';
 import 'package:score_board/views/widgets/flat_rounded_button.dart';
 
@@ -46,8 +48,13 @@ class Summery extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: FlatRoundedButton(
+                loading: configViewModel.state == ViewState.Busy,
                 title: "Confirm",
-                onPress: onConfirmPress,
+                onPress: () {
+                  configViewModel.saveMatchConfig().then((value) {
+                    if (value) onConfirmPress();
+                  });
+                },
               ),
             )
           ],

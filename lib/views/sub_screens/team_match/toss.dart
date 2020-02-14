@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:score_board/helpers/constants.dart';
 import 'package:score_board/viewmodels/match_config_viewmodel.dart';
 import 'package:score_board/views/widgets/coin_side.dart';
 import 'package:score_board/views/widgets/flat_rounded_button.dart';

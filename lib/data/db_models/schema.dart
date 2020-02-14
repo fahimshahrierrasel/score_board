@@ -20,7 +20,7 @@ final playerTable = DbTable(playerTableName)
   ..index('id')
   ..varchar('first_name')
   ..varchar('last_name')
-  ..varchar('type')
+  ..integer('type')
   ..integer('team_id');
 
 const seriesTableName = "series";

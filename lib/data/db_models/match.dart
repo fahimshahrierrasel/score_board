@@ -1,8 +1,5 @@
-import 'package:score_board/data/models/match_configuration.dart';
-import 'package:score_board/data/models/match_player.dart';
-import 'package:score_board/data/models/match_teams.dart';
-import 'package:score_board/data/models/result.dart';
-import 'package:score_board/data/models/toss.dart';
+import 'package:score_board/data/db_models/schema.dart';
+import 'package:score_board/data/models/models.dart';
 import 'package:score_board/main.dart';
 import 'package:sqlcool/sqlcool.dart';
 
@@ -28,6 +25,9 @@ class Match with DbModel {
 
   @override
   Db get db => appDb;
+
+  @override
+  DbTable get table => matchTable;
 
   @override
   Map<String, dynamic> toDb() => {

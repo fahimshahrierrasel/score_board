@@ -8,7 +8,7 @@ class Player with DbModel {
 
   final String firstName;
   final String lastName;
-  final String type;
+  final int type;
   final int teamId;
 
   Player({this.id, this.firstName, this.lastName, this.type, this.teamId});
@@ -20,11 +20,11 @@ class Player with DbModel {
   DbTable get table => playerTable;
 
   @override
-  Map<String, dynamic> toDb() => {
+  Map<String, String> toDb() => {
         "first_name": firstName,
         "last_name": lastName,
-        "type": type,
-        "team_id": teamId
+        "type": type.toString(),
+        "team_id": teamId.toString()
       };
 
   @override
@@ -32,7 +32,7 @@ class Player with DbModel {
         id: map['id'] as int,
         firstName: map['first_name'] as String,
         lastName: map['last_name'] as String,
-        type: map['type'] as String,
+        type: map['type'] as int,
         teamId: map['team_id'] as int,
       );
 }

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:score_board/data/services/repository.dart';
+import 'package:score_board/viewmodels/match_list_viewmodel.dart';
 import 'package:score_board/views/commons/app_drawer.dart';
 import 'package:score_board/views/commons/fade_page_route.dart';
 import 'package:score_board/views/screens/create_match.dart';
@@ -27,11 +30,26 @@ class _HomePageState extends State<HomePage> {
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () {
-          Navigator.of(context).push(
-              FadePageRoute(builder: (context) => CreateMatch()));
+          Navigator.of(context)
+              .push(FadePageRoute(builder: (context) => CreateMatch()));
         },
       ),
-      body: HomePageTabs(),
+      body: Consumer<MatchListViewModel>(
+        builder: (_, matchListViewModel, __) {
+          return FutureBuilder<bool>(
+            future: matchListViewModel.getMatches(),
+            builder: (_context, snapshot) {
+              if (snapshot.hasData) {
+                return HomePageTabs();
+              } else {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+            },
+          );
+        },
+      ),
     );
   }
 }

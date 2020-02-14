@@ -1,8 +1,13 @@
+import 'package:score_board/data/db_models/db_models.dart';
+import 'package:score_board/data/models/models.dart';
+import 'package:score_board/data/services/repository.dart';
+import 'package:score_board/helpers/constants.dart';
 import 'package:score_board/viewmodels/base_viewmodel.dart';
+import 'package:score_board/viewmodels/view_state.dart';
 
-enum NameType { FIRST, LAST }
-enum TeamNo { FIRST, SECOND }
-enum TossWinningType { BATTING, FIELDING }
+extension on TossWinningType {
+  String get value => this.toString().split('.').last;
+}
 
 class MatchConfigViewModel extends BaseViewModel {
   String firstTeamName;
@@ -19,8 +24,78 @@ class MatchConfigViewModel extends BaseViewModel {
   TeamNo tossWinningTeam;
   TossWinningType tossWinnerElectedType;
 
-  Future<bool> saveMatchConfig(){
+  Future<bool> saveMatchConfig() async {
+    setViewState(ViewState.Busy);
 
+    final matchConfiguration = MatchConfiguration(
+        playersPerTeam: numberOfPlayer,
+        totalOvers: numberOfOvers,
+        perBowler: maxOverPerBowler);
+
+    final firstTeam = Team(
+      name: firstTeamName,
+    );
+
+    final secondTeam = Team(
+      name: secondTeamName,
+    );
+
+    final firstTeamId = await repository.insertTeam(firstTeam);
+    final secondTeamId = await repository.insertTeam(secondTeam);
+
+    final matchTeams = MatchTeams(
+      teamOneId: firstTeamId,
+      teamTwoId: secondTeamId,
+    );
+
+    final List<Player> firstTeamPlayers = new List<Player>();
+    final List<Player> secondTeamPlayers = new List<Player>();
+
+    for (int i = 0; i < numberOfPlayer; i++) {
+      firstTeamPlayers.add(Player(
+        firstName: firstTeamFirstName[i],
+        lastName: firstTeamLastName[i],
+        type: firstTeamPlayerType[i],
+        teamId: firstTeamId,
+      ));
+
+      secondTeamPlayers.add(Player(
+        firstName: secondTeamFirstName[i],
+        lastName: secondTeamLastName[i],
+        type: secondTeamPlayerType[i],
+        teamId: secondTeamId,
+      ));
+    }
+
+    final firstTeamPlayersId = await repository.insertPlayers(firstTeamPlayers);
+    final secondTeamPlayersId =
+        await repository.insertPlayers(secondTeamPlayers);
+
+    final MatchPlayer matchPlayers = MatchPlayer(
+      teamOnePlayers: firstTeamPlayersId,
+      teamTwoPlayers: secondTeamPlayersId,
+    );
+
+    final toss = Toss(
+        teamWon: tossWinningTeam == TeamNo.FIRST ? firstTeamId : secondTeamId,
+        decision: tossWinnerElectedType.value);
+
+    final match = Match(
+      seriesId: 0,
+      configuration: matchConfiguration,
+      teams: matchTeams,
+      players: matchPlayers,
+      toss: toss,
+      result: Result(),
+    );
+
+    return repository.insertMatch(match).then((matchId) {
+      setViewState(ViewState.Idle);
+      if (matchId > 0)
+        return true;
+      else
+        return false;
+    });
   }
 
   void changeNumberOfPlayer(double newValue) {
@@ -38,7 +113,7 @@ class MatchConfigViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  void setTossResult(TeamNo winningTeam, TossWinningType electedType){
+  void setTossResult(TeamNo winningTeam, TossWinningType electedType) {
     tossWinningTeam = winningTeam;
     tossWinnerElectedType = electedType;
     notifyListeners();
