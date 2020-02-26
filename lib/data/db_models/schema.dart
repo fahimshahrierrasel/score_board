@@ -1,8 +1,19 @@
 import 'package:sqlcool/sqlcool.dart';
 
+final tableNames = [
+  teamTableName,
+  playerTableName,
+  seriesTableName,
+  matchTableName,
+  inningsTableName,
+  battingTableName,
+  overTableName,
+];
+
 final schema = [
   teamTable,
   playerTable,
+  seriesTable,
   matchTable,
   inningsTable,
   battingTable,
