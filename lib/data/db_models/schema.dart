@@ -43,7 +43,10 @@ const inningsTableName = "innings";
 final inningsTable = DbTable(inningsTableName)
   ..index('id')
   ..integer('match_id')
-  ..integer('number');
+  ..integer("batting_team_id")
+  ..integer("bowling_team_id")
+  ..integer('number')
+  ..varchar("innings_status");
 
 const battingTableName = "battings";
 final battingTable = DbTable(battingTableName)

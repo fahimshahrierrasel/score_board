@@ -176,11 +176,7 @@ class MatchDetails extends StatelessWidget {
 
 class PlayerList extends StatelessWidget {
   final TeamNo teamNo;
-  final playerTypeIcon = const [
-    "assets/images/bat.png",
-    "assets/images/ball.png",
-    "assets/images/all_rounder.png"
-  ];
+
 
   const PlayerList({Key key, @required this.teamNo}) : super(key: key);
   @override
@@ -204,7 +200,7 @@ class PlayerList extends StatelessWidget {
           decoration: generalCardDecoration,
           child: ListTile(
             trailing: Image.asset(
-              playerTypeIcon[type],
+              PLAYER_TYPE_ICON[type],
               height: 20,
               width: 20,
             ),

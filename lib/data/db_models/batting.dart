@@ -11,8 +11,8 @@ class Batting with DbModel {
   final int playerId;
   final int inningsId;
   final int position;
-  final RunDetails runDetails;
-  final WicketInfo wicketInfo;
+  RunDetails runDetails;
+  WicketInfo wicketInfo;
 
   Batting({
     this.id,
@@ -40,11 +40,11 @@ class Batting with DbModel {
 
   @override
   DbModel fromDb(Map<String, dynamic> map) => Batting(
-        id: map['id'] as int,
-        playerId: map['player_id'] as int,
-        inningsId: map['innings_id'] as int,
-        position: map['position'] as int,
-        runDetails: RunDetails.fromJson(map['run_details']),
-        wicketInfo: WicketInfo.fromJson(map['wicket_info']),
-      );
+    id: map['id'] as int,
+    playerId: map['player_id'] as int,
+    inningsId: map['innings_id'] as int,
+    position: map['position'] != null ? map['position'] as int : 0,
+    runDetails: RunDetails.fromJson(map['run_details']),
+    wicketInfo: WicketInfo.fromJson(map['wicket_info']),
+  );
 }

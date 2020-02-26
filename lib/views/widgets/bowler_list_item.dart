@@ -1,93 +1,129 @@
 import 'package:flutter/material.dart';
+import 'package:score_board/data/db_models/db_models.dart';
+import 'package:score_board/data/models/models.dart';
+import 'package:score_board/helpers/constants.dart';
+import 'package:score_board/main.dart';
+import 'package:sqlcool/sqlcool.dart';
 
-class BowlerListItem extends StatelessWidget {
-  final String name;
-  final int balls;
-  final int maidens;
-  final int runs;
-  final int wickets;
-  final bool isHeader;
-  final bool whiteHeader;
+extension on BALL_TYPE {
+  String get value => this.toString().split('.').last;
+}
 
-  const BowlerListItem({
-    Key key,
-    this.name,
-    this.balls,
-    this.maidens,
-    this.runs,
-    this.wickets,
-    this.isHeader = false,
-    this.whiteHeader = false
-  }) : super(key: key);
+class BowlerListItem extends StatefulWidget {
+  final Player player;
+  final Innings innings;
+
+  const BowlerListItem({Key key, this.player, this.innings}) : super(key: key);
+
+  @override
+  _BowlerListItemState createState() => _BowlerListItemState();
+}
+
+class _BowlerListItemState extends State<BowlerListItem> {
+  SelectBloc bowlerBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    bowlerBloc = SelectBloc(
+      database: appDb,
+      table: overTableName,
+      where:
+          "player_id = ${widget.player.id} AND innings_id = ${widget.innings.id}",
+      reactive: true,
+    );
+  }
+
+  @override
+  void dispose() {
+    bowlerBloc.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(8.0),
-      decoration: isHeader
-          ? BoxDecoration(
-              color: whiteHeader ? Colors.grey : Theme.of(context).primaryColor,
-              borderRadius: !whiteHeader ? BorderRadius.only(
-                topLeft: Radius.circular(5),
-                topRight: Radius.circular(5),
-              ) : null,
-            )
-          : null,
-      child: Row(
-        children: <Widget>[
-          Expanded(
-              child: Text(
-            isHeader ? "Bowler" : name,
-            style: isHeader && !whiteHeader ? TextStyle(color: Colors.white) : null,
-          )),
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: StreamBuilder<List<Map>>(
+        stream: bowlerBloc.items,
+        builder: (_, snapshot) {
+          if (snapshot.hasData) {
+            final List<Over> overs = deserializeOvers(snapshot.data);
+            final List<Ball> allBalls = [];
+            allBalls.clear();
+            overs.forEach((over) => allBalls.addAll(over.ballDetails.balls));
+
+            int validBalls = calculateValidBalls(allBalls);
+            int overForEconomy = (validBalls / 6).floor() == 0 ? 1 : (validBalls / 6).floor();
+            int runs = calculateRuns(allBalls);
+            return Row(
               children: <Widget>[
+                Expanded(child: Text(widget.player.lastName)),
                 Expanded(
-                  child: Text(
-                    isHeader
-                        ? "O"
-                        : "${(balls / 6).floor()}${balls % 6 > 0 ? "." : ""}${balls % 6 > 0 ? (balls % 6) : ""}",
-                    textAlign: TextAlign.center,
-                    style: isHeader && !whiteHeader ? TextStyle(color: Colors.white) : null,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    isHeader ? "M" : maidens.toString(),
-                    textAlign: TextAlign.center,
-                    style: isHeader && !whiteHeader ? TextStyle(color: Colors.white) : null,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    isHeader ? "R" : runs.toString(),
-                    textAlign: TextAlign.center,
-                    style: isHeader && !whiteHeader ? TextStyle(color: Colors.white) : null,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    isHeader ? "W" : wickets.toString(),
-                    textAlign: TextAlign.center,
-                    style: isHeader && !whiteHeader ? TextStyle(color: Colors.white) : null,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    isHeader
-                        ? "ECO"
-                        : "${(runs / (balls / 6).floor()).toStringAsFixed(1)}",
-                    textAlign: TextAlign.end,
-                    style: isHeader && !whiteHeader ? TextStyle(color: Colors.white) : null,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          "${(validBalls / 6).floor()}${validBalls % 6 > 0 ? "." : ""}${validBalls % 6 > 0 ? (validBalls % 6) : ""}",
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          "M",
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          runs.toString(),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          "W",
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          "${(runs / overForEconomy.toDouble()).toStringAsFixed(1)}",
+                          textAlign: TextAlign.end,
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
-            ),
-          ),
-        ],
+            );
+          } else {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        },
       ),
     );
+  }
+
+  List<Over> deserializeOvers(List<Map> rows) {
+    List<Over> overs = [];
+    rows.forEach((row) => overs.add(Over().fromDb(row)));
+    return overs;
+  }
+
+  int calculateValidBalls(List<Ball> allBalls) {
+    final validBalls =
+        allBalls.where((ball) => ball.ballType == BALL_TYPE.VALID.value);
+    return validBalls.length;
+  }
+
+  int calculateRuns(List<Ball> allBalls) {
+    int runs = 0;
+    allBalls.forEach((ball) => runs = runs + ball.run);
+    return runs;
   }
 }

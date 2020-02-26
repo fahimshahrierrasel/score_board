@@ -13,11 +13,11 @@ class BallDetails {
   String toJson() => json.encode(toMap());
 
   factory BallDetails.fromMap(Map<String, dynamic> json) => BallDetails(
-        balls: List<Ball>.from(json["balls"].map((x) => Ball.fromMap(x))),
+        balls: json["balls"] != null ? List<Ball>.from(json["balls"].map((x) => Ball.fromMap(x))) : List<Ball>(),
       );
 
   Map<String, dynamic> toMap() => {
-        "balls": List<dynamic>.from(balls.map((x) => x.toMap())),
+        "balls": balls != null ? List<dynamic>.from(balls.map((x) => x.toMap())): null,
       };
 }
 

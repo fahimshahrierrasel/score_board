@@ -10,7 +10,7 @@ class Over with DbModel {
   final int playerId;
   final int inningsId;
   final int number;
-  final BallDetails ballDetails;
+  BallDetails ballDetails;
 
   Over({
     this.id,

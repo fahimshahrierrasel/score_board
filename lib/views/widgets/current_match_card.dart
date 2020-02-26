@@ -14,6 +14,10 @@ class CurrentMatchCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final matchListViewModel = Provider.of<MatchListViewModel>(context);
+    final firstTeam = matchListViewModel.teams
+        .firstWhere((team) => team.id == match.teams.teamOneId);
+    final secondTeam = matchListViewModel.teams
+        .firstWhere((team) => team.id == match.teams.teamTwoId);
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: generalCardDecoration,
@@ -24,7 +28,11 @@ class CurrentMatchCard extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => CurrentMatchPage(),
+                builder: (context) => CurrentMatchPage(
+                  match: match,
+                  firstTeam: firstTeam,
+                  secondTeam: secondTeam,
+                ),
               ),
             );
           },
@@ -39,11 +47,13 @@ class CurrentMatchCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      Text(
-                        matchListViewModel.teams.firstWhere((team) => team.id == match.teams.teamOneId).name,
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Text(
+                          firstTeam.name,
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       Container(
@@ -63,11 +73,13 @@ class CurrentMatchCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Text(
-                        matchListViewModel.teams.firstWhere((team) => team.id == match.teams.teamTwoId).name,
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Text(
+                          secondTeam.name,
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       )
                     ],
