@@ -2,10 +2,10 @@ enum NameType { FIRST, LAST }
 enum TeamNo { FIRST, SECOND }
 enum TossWinningType { BATTING, FIELDING }
 enum MatchStatus { CURRENT, PREVIOUS }
-
-extension on TossWinningType {
-  String get value => this.toString().split('.').last;
-}
+enum RunType { ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX }
+enum BallType { VALID, WD, NB, W, B }
+enum ExtraType { WD, NB, LB, B }
+enum BallRunType { BAT, BYE }
 
 const PLAYER_TYPE = ["Batsman", "Bowler", "All-Rounder"];
 const PLAYER_TYPE_ICON = [
@@ -13,10 +13,5 @@ const PLAYER_TYPE_ICON = [
   "assets/images/ball.png",
   "assets/images/all_rounder.png"
 ];
-
-enum RUN_TYPE { ZERO, ONE, TWO, THREE, FOUR, FIVE, SIX }
-enum BALL_TYPE { VALID, WD, NB, LB}
-
-extension on BALL_TYPE {
-  String get value => this.toString().split('.').last;
-}
+const EXTRA_RUN_TYPE = "EXTRA_RUN_TYPE";
+const EXTRA_RUN = "EXTRA_RUN";

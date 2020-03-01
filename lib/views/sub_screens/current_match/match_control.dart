@@ -13,6 +13,7 @@ import 'package:score_board/views/widgets/batsman_list_item.dart';
 import 'package:score_board/views/widgets/batsman_list_item_header.dart';
 import 'package:score_board/views/widgets/bowler_list_item.dart';
 import 'package:score_board/views/widgets/bowler_list_item_header.dart';
+import 'package:score_board/views/widgets/extra_run_dialog.dart';
 import 'package:score_board/views/widgets/score_control_button.dart';
 
 class MatchControl extends StatefulWidget {
@@ -29,8 +30,8 @@ class _MatchControlState extends State<MatchControl> {
           return FutureProvider<bool>(
             create: (_) => currentMatchViewModel.setUpInnings(),
             catchError: (_, err) {
-             print(err);
-             return false;
+              print(err);
+              return false;
             },
             child: Consumer<bool>(
               builder: (_, isSetUpComplete, __) {
@@ -70,7 +71,6 @@ class _MatchControlState extends State<MatchControl> {
                           ),
                         ),
                       ),
-                      Text("Extra : 12 (B 0, LB 0, WD 10, NB 2)"),
                       BallByBallView(
                         currentInnings: currentMatchViewModel.currentInnings,
                       ),
@@ -177,54 +177,183 @@ class _MatchControlState extends State<MatchControl> {
       ScoreControlButton(
         title: "WD",
         backgroundColor: Colors.yellow,
-        onTap: () {},
+        onTap: () async {
+          final extraRun = await showDialog(
+            barrierDismissible: false,
+            context: context,
+            builder: (BuildContext _context) {
+              // return object of type Dialog
+              return ExtraRunDialog(
+                title: "Wide",
+                extraType: ExtraType.WD,
+              );
+            },
+          );
+          await currentMatchViewModel
+              .countExtraRun(ExtraType.WD, extraRun)
+              .catchError((e) {
+            Scaffold.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  e.toString(),
+                ),
+              ),
+            );
+          });
+        },
       ),
       ScoreControlButton(
         title: "NB",
         backgroundColor: Colors.yellow,
-        onTap: () {},
+        onTap: () async {
+          final extraRun = await showDialog(
+            barrierDismissible: false,
+            context: context,
+            builder: (BuildContext _context) {
+              // return object of type Dialog
+              return ExtraRunDialog(
+                title: "No-ball",
+                extraType: ExtraType.NB,
+              );
+            },
+          );
+          await currentMatchViewModel
+              .countExtraRun(ExtraType.NB, extraRun)
+              .catchError((e) {
+            Scaffold.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  e.toString(),
+                ),
+              ),
+            );
+          });
+        },
       ),
       ScoreControlButton(
-        title: "LB",
+        title: "B",
         backgroundColor: Colors.yellow,
-        onTap: () {},
+        onTap: () async {
+          final extraRun = await showDialog(
+            barrierDismissible: false,
+            context: context,
+            builder: (BuildContext _context) {
+              // return object of type Dialog
+              return ExtraRunDialog(
+                title: "Bye",
+                extraType: ExtraType.B,
+              );
+            },
+          );
+          await currentMatchViewModel
+              .countExtraRun(ExtraType.B, extraRun)
+              .catchError((e) {
+            Scaffold.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  e.toString(),
+                ),
+              ),
+            );
+          });
+        },
       ),
       ScoreControlButton(
         title: "4",
         backgroundColor: Colors.green,
-        onTap: () {
-          currentMatchViewModel.countRunNBall(RUN_TYPE.FOUR);
+        onTap: () async {
+          await currentMatchViewModel
+              .countRunNBall(RunType.FOUR)
+              .catchError((e) {
+            Scaffold.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  e.toString(),
+                ),
+              ),
+            );
+          });
         },
       ),
       ScoreControlButton(
         title: "6",
         backgroundColor: Colors.green,
-        onTap: () {
-          currentMatchViewModel.countRunNBall(RUN_TYPE.SIX);
+        onTap: () async {
+          await currentMatchViewModel
+              .countRunNBall(RunType.SIX)
+              .catchError((e) {
+            Scaffold.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  e.toString(),
+                ),
+              ),
+            );
+          });
         },
       ),
       ScoreControlButton(
         title: "0",
-        onTap: () {
-          currentMatchViewModel.countRunNBall(RUN_TYPE.ZERO);
+        onTap: () async {
+          await currentMatchViewModel
+              .countRunNBall(RunType.ZERO)
+              .catchError((e) {
+            Scaffold.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  e.toString(),
+                ),
+              ),
+            );
+          });
         },
       ),
       ScoreControlButton(
         title: "1",
-        onTap: () {
-          currentMatchViewModel.countRunNBall(RUN_TYPE.ONE);
+        onTap: () async {
+          await currentMatchViewModel
+              .countRunNBall(RunType.ONE)
+              .catchError((e) {
+            Scaffold.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  e.toString(),
+                ),
+              ),
+            );
+          });
         },
       ),
       ScoreControlButton(
         title: "2",
-        onTap: () {
-          currentMatchViewModel.countRunNBall(RUN_TYPE.TWO);
+        onTap: () async {
+          await currentMatchViewModel
+              .countRunNBall(RunType.TWO)
+              .catchError((e) {
+            Scaffold.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  e.toString(),
+                ),
+              ),
+            );
+          });
         },
       ),
       ScoreControlButton(
         title: "3",
-        onTap: () {
-          currentMatchViewModel.countRunNBall(RUN_TYPE.THREE);
+        onTap: () async {
+          await currentMatchViewModel
+              .countRunNBall(RunType.THREE)
+              .catchError((e) {
+            Scaffold.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  e.toString(),
+                ),
+              ),
+            );
+          });
         },
       ),
     ];

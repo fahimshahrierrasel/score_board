@@ -13,11 +13,15 @@ class BallDetails {
   String toJson() => json.encode(toMap());
 
   factory BallDetails.fromMap(Map<String, dynamic> json) => BallDetails(
-        balls: json["balls"] != null ? List<Ball>.from(json["balls"].map((x) => Ball.fromMap(x))) : List<Ball>(),
+        balls: json["balls"] != null
+            ? List<Ball>.from(json["balls"].map((x) => Ball.fromMap(x)))
+            : List<Ball>(),
       );
 
   Map<String, dynamic> toMap() => {
-        "balls": balls != null ? List<dynamic>.from(balls.map((x) => x.toMap())): null,
+        "balls": balls != null
+            ? List<dynamic>.from(balls.map((x) => x.toMap()))
+            : null,
       };
 }
 
@@ -25,12 +29,14 @@ class Ball {
   int number;
   int run;
   String ballType;
+  String runType;
   bool wicket;
 
   Ball({
     this.number,
     this.run,
     this.ballType,
+    this.runType,
     this.wicket,
   });
 
@@ -42,6 +48,7 @@ class Ball {
         number: json["number"],
         run: json["run"],
         ballType: json["ball_type"],
+        runType: json["run_type"],
         wicket: json["wicket"],
       );
 
@@ -49,6 +56,7 @@ class Ball {
         "number": number,
         "run": run,
         "ball_type": ballType,
+        "run_type": runType,
         "wicket": wicket,
       };
 }

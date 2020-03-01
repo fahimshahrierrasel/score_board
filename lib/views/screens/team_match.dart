@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:score_board/viewmodels/match_config_viewmodel.dart';
 import 'package:score_board/views/sub_screens/team_match/team_match.dart';
 
-
 class TeamMatch extends StatefulWidget {
   @override
   _TeamMatchState createState() => _TeamMatchState();
@@ -21,16 +20,14 @@ class _TeamMatchState extends State<TeamMatch> {
     _pageController = PageController(initialPage: currentStep)
       ..addListener(() {
         setState(() {
-          if (currentStep == 0)
-            title = "Match Configuration";
+          if (currentStep == 0) title = "Match Configuration";
           if (currentStep == 1)
             title = "$firstTeamName Players";
           else if (currentStep == 2)
             title = "$secondTeamName Players";
           else if (currentStep == 3)
             title = "Toss";
-          else if (currentStep == 4)
-            title = "Summery";
+          else if (currentStep == 4) title = "Summery";
         });
       });
     super.initState();
@@ -44,7 +41,7 @@ class _TeamMatchState extends State<TeamMatch> {
     secondTeamName = configViewModel.secondTeamName;
   }
 
-  void _goToNextPage(){
+  void _goToNextPage() {
     setState(() {
       currentStep = currentStep + 1;
     });
@@ -55,7 +52,13 @@ class _TeamMatchState extends State<TeamMatch> {
   Widget build(BuildContext context) {
     final configViewModel = Provider.of<MatchConfigViewModel>(context);
     return Scaffold(
-      appBar: AppBar(title: Text(title),),
+      appBar: AppBar(
+        title: Text(title),
+        flexibleSpace: Image.asset(
+          "assets/images/team_match.jpg",
+          fit: BoxFit.cover,
+        ),
+      ),
       body: WillPopScope(
         onWillPop: () {
           setState(() {
@@ -85,7 +88,7 @@ class _TeamMatchState extends State<TeamMatch> {
               onNextPress: _goToNextPage,
             ),
             Summery(
-              onConfirmPress: (){
+              onConfirmPress: () {
                 Navigator.of(context).pop();
               },
             ),

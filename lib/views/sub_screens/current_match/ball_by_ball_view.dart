@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:score_board/data/db_models/db_models.dart';
 import 'package:score_board/data/db_models/innings.dart';
 import 'package:score_board/data/models/ball_details.dart';
+import 'package:score_board/helpers/constants.dart';
+import 'package:score_board/helpers/extensions.dart';
 import 'package:score_board/main.dart';
 import 'package:score_board/views/commons/decorations.dart';
 import 'package:sqlcool/sqlcool.dart';
@@ -43,7 +45,7 @@ class _BallByBallViewState extends State<BallByBallView> {
   Widget build(BuildContext context) {
     return Container(
       decoration: generalCardDecoration,
-      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      margin: EdgeInsets.only(left: 10, right: 10, bottom: 10),
       padding: EdgeInsets.symmetric(vertical: 5),
       child: Column(
         children: <Widget>[
@@ -60,30 +62,66 @@ class _BallByBallViewState extends State<BallByBallView> {
                 overs
                     .forEach((over) => allBalls.addAll(over.ballDetails.balls));
                 allBalls = allBalls.reversed.toList();
-                return Container(
-                  height: 40,
-                  margin: EdgeInsets.symmetric(vertical: 10),
-                  child: ListView.builder(
-                    reverse: true,
-                    itemCount: allBalls.length,
-                    scrollDirection: Axis.horizontal,
-                    itemBuilder: (_, index) {
-                      return Container(
-                        margin: EdgeInsets.symmetric(horizontal: 5),
-                        height: 40,
-                        width: 40,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0xffdd8d8d8),
-                        ),
-                        child: Text(
-                          allBalls[index].run.toString(),
-                          style: GoogleFonts.oswald(fontSize: 20),
-                        ),
-                      );
-                    },
-                  ),
+
+                // Calculating Extra Runs
+                final wideBalls = allBalls
+                    .where((ball) => ball.ballType == BallType.WD.value)
+                    .length;
+                final noBalls = allBalls
+                    .where((ball) => ball.ballType == BallType.NB.value)
+                    .length;
+
+                final totalExtras = wideBalls + noBalls;
+
+                return Column(
+                  children: <Widget>[
+                    Container(
+                      height: 40,
+                      margin: EdgeInsets.symmetric(vertical: 10),
+                      child: ListView.builder(
+                        reverse: true,
+                        itemCount: allBalls.length,
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (_, index) {
+                          final ball = allBalls[index];
+                          bool isExtraRunBall = false;
+                          String ballText = "";
+                          if (ball.ballType == BallType.VALID.value) {
+                            ballText = ball.run.toString();
+                          } else if (ball.ballType == BallType.NB.value) {
+                            isExtraRunBall = true;
+                            ballText = ball.run > 0 ? "NB+${ball.run}" : "NB";
+                          } else if (ball.ballType == BallType.WD.value) {
+                            isExtraRunBall = true;
+                            ballText = ball.run > 0 ? "WD+${ball.run}" : "WD";
+                          }else if(ball.ballType == BallType.B.value){
+                            isExtraRunBall = true;
+                            ballText = "B+${ball.run}";
+                          }
+                          return Container(
+                            margin: EdgeInsets.symmetric(horizontal: 5),
+                            height: 40,
+                            width: 40,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isExtraRunBall
+                                  ? Colors.yellow
+                                  : Color(0xffdd8d8d8),
+                            ),
+                            child: Text(
+                              ballText,
+                              style: isExtraRunBall
+                                  ? GoogleFonts.oswald(fontSize: 16)
+                                  : GoogleFonts.oswald(fontSize: 20),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    Text(
+                        "Extra : $totalExtras (B 0, LB 0, WD $wideBalls, NB $noBalls)"),
+                  ],
                 );
               } else {
                 return Center(

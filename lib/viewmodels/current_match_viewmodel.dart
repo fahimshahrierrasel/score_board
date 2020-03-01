@@ -3,13 +3,12 @@ import 'package:score_board/data/models/innings_status.dart';
 import 'package:score_board/data/models/models.dart';
 import 'package:score_board/data/services/repository.dart';
 import 'package:score_board/helpers/constants.dart';
+import 'package:score_board/helpers/extensions.dart';
 import 'package:score_board/viewmodels/base_viewmodel.dart';
 
-extension on BALL_TYPE {
-  String get value => this.toString().split('.').last;
-}
-
 class CurrentMatchViewModel extends BaseViewModel {
+  bool hasError = false;
+  String errorMessage = "";
   bool isMatchStarted = false;
   Match currentMatch;
   List<Innings> matchInnings;
@@ -49,37 +48,93 @@ class CurrentMatchViewModel extends BaseViewModel {
     }
   }
 
-  Future<void> countRunNBall(RUN_TYPE runType) async {
-    //Any Batsman or Bowler Null no run will count show error
-    // TODO catch above cases
+  Future<void> countRunNBall(RunType runType) async {
+    if (firstBatsman == null || secondBatsman == null) {
+      throw Exception("Either first or second batsman can not be empty");
+    }
+    if (currentBowler == null) {
+      throw Exception("Bowler can not be empty");
+    }
     int run = 0;
     switch (runType) {
-      case RUN_TYPE.ZERO:
+      case RunType.ZERO:
         run = 0;
         break;
-      case RUN_TYPE.ONE:
+      case RunType.ONE:
         run = 1;
         break;
-      case RUN_TYPE.TWO:
+      case RunType.TWO:
         run = 2;
         break;
-      case RUN_TYPE.THREE:
+      case RunType.THREE:
         run = 3;
         break;
-      case RUN_TYPE.FOUR:
+      case RunType.FOUR:
         run = 4;
         break;
-      case RUN_TYPE.FIVE:
+      case RunType.FIVE:
         run = 5;
         break;
-      case RUN_TYPE.SIX:
+      case RunType.SIX:
         run = 6;
         break;
     }
     totalRun = totalRun + run;
     await batsmanRun(runType);
-    await overRun(run);
+    await overRun(run, BallType.VALID, BallRunType.BAT);
     totalBall = totalBall + 1;
+    if (totalBall % 6 == 0) {
+      overComplete();
+    }
+    calculateRunRates();
+    await saveInnings();
+    notifyListeners();
+  }
+
+  Future<void> countExtraRun(
+      ExtraType extraType, Map<String, dynamic> additionalRun) async {
+    if (firstBatsman == null || secondBatsman == null) {
+      throw Exception("Either first or second batsman can not be empty");
+    }
+    if (currentBowler == null) {
+      throw Exception("Bowler can not be empty");
+    }
+    switch (extraType) {
+      case ExtraType.WD:
+        totalRun += 1;
+        break;
+      case ExtraType.NB:
+        totalRun += 1;
+        break;
+      case ExtraType.LB:
+        totalBall += 1;
+        break;
+      case ExtraType.B:
+        totalBall += 1;
+        break;
+    }
+    int extraRun = additionalRun[EXTRA_RUN] as int;
+    totalRun += extraRun;
+
+    if (additionalRun[EXTRA_RUN_TYPE] == BallRunType.BAT) {
+      await batsmanRun(extraRun.getRunType());
+    } else {
+      await batsmanRun(RunType.ZERO);
+      tryBatsmanRotation(extraRun.getRunType());
+    }
+
+    BallType ballType = BallType.VALID;
+
+    if (extraType == ExtraType.NB)
+      ballType = BallType.NB;
+    else if (extraType == ExtraType.WD)
+      ballType = BallType.WD;
+    else
+      ballType = BallType.B;
+
+    await overRun(additionalRun[EXTRA_RUN], ballType,
+        (additionalRun[EXTRA_RUN_TYPE] as BallRunType));
+
     if (totalBall % 6 == 0) {
       overComplete();
     }
@@ -94,6 +149,8 @@ class CurrentMatchViewModel extends BaseViewModel {
     currentOver = null;
   }
 
+  /// It will rotate batsman strike
+  /// If you only want to rotate batsman based on run use batsmanRotation
   void batsmanRotation() {
     if (strikeBatsman == firstBatsmanBatting)
       strikeBatsman = secondBatsmanBatting;
@@ -101,9 +158,15 @@ class CurrentMatchViewModel extends BaseViewModel {
       strikeBatsman = firstBatsmanBatting;
   }
 
-  Future<void> overRun(int run) async {
+  Future<void> overRun(
+      int run, BallType ballType, BallRunType ballRunType) async {
     List<Ball> balls = currentOver.ballDetails.balls;
-    balls.add(Ball(run: run, ballType: BALL_TYPE.VALID.value, wicket: false));
+    balls.add(Ball(
+      run: run,
+      ballType: ballType.value,
+      runType: ballRunType.value,
+      wicket: false,
+    ));
 
     BallDetails ballDetails = BallDetails(balls: balls);
 
@@ -111,36 +174,42 @@ class CurrentMatchViewModel extends BaseViewModel {
     await repository.updateOver(currentOver);
   }
 
-  Future<void> batsmanRun(RUN_TYPE runType) async {
+  Future<void> batsmanRun(RunType runType) async {
     final runDetails = strikeBatsman.runDetails;
     switch (runType) {
-      case RUN_TYPE.ZERO:
+      case RunType.ZERO:
         runDetails.zero = runDetails.zero + 1;
         break;
-      case RUN_TYPE.ONE:
+      case RunType.ONE:
         runDetails.one = runDetails.one + 1;
         break;
-      case RUN_TYPE.TWO:
+      case RunType.TWO:
         runDetails.two = runDetails.two + 1;
         break;
-      case RUN_TYPE.THREE:
+      case RunType.THREE:
         runDetails.three = runDetails.three + 1;
         break;
-      case RUN_TYPE.FOUR:
+      case RunType.FOUR:
         runDetails.four = runDetails.four + 1;
         break;
-      case RUN_TYPE.FIVE:
+      case RunType.FIVE:
         runDetails.five = runDetails.five + 1;
         break;
-      case RUN_TYPE.SIX:
+      case RunType.SIX:
         runDetails.six = runDetails.six + 1;
         break;
     }
     strikeBatsman.runDetails = runDetails;
     await repository.upsertBatting(strikeBatsman);
-    if (runType == RUN_TYPE.ONE ||
-        runType == RUN_TYPE.THREE ||
-        runType == RUN_TYPE.FIVE) {
+    tryBatsmanRotation(runType);
+  }
+
+  /// Try to rotate batsman based on RunType.
+  /// If you only want to rotate just use batsmanRotation()
+  void tryBatsmanRotation(RunType runType) {
+    if (runType == RunType.ONE ||
+        runType == RunType.THREE ||
+        runType == RunType.FIVE) {
       batsmanRotation();
     }
   }
@@ -217,17 +286,19 @@ class CurrentMatchViewModel extends BaseViewModel {
             (player) => player.id == inningsStatus.currentBowlerId ?? 0,
             orElse: () => null);
       }
-      if(firstBatsman != null)
-        firstBatsmanBatting = await repository.fetchBatting(firstBatsman.id, currentInnings.id);
-      if(secondBatsman != null)
-        secondBatsmanBatting = await repository.fetchBatting(secondBatsman.id, currentInnings.id);
+      if (firstBatsman != null)
+        firstBatsmanBatting =
+            await repository.fetchBatting(firstBatsman.id, currentInnings.id);
+      if (secondBatsman != null)
+        secondBatsmanBatting =
+            await repository.fetchBatting(secondBatsman.id, currentInnings.id);
       if (inningsStatus.strikeBatsmanId != null) {
-        if(inningsStatus.strikeBatsmanId == firstBatsman.id)
+        if (inningsStatus.strikeBatsmanId == firstBatsman.id)
           strikeBatsman = firstBatsmanBatting;
-        else if(inningsStatus.strikeBatsmanId == secondBatsman.id)
+        else if (inningsStatus.strikeBatsmanId == secondBatsman.id)
           strikeBatsman = secondBatsmanBatting;
       }
-      if(inningsStatus.currentOverId != null){
+      if (inningsStatus.currentOverId != null) {
         currentOver = await repository.fetchOver(inningsStatus.currentOverId);
       }
       calculateRunRates();

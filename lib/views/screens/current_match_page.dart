@@ -24,6 +24,14 @@ class CurrentMatchPage extends StatefulWidget {
 }
 
 class _CurrentMatchPageState extends State<CurrentMatchPage> {
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -36,24 +44,28 @@ class _CurrentMatchPageState extends State<CurrentMatchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("${widget.firstTeam.name} vs ${widget.secondTeam.name}"),
-      ),
       body: Consumer<CurrentMatchViewModel>(
         builder: (_, currentMatchViewModel, __) {
           if (currentMatchViewModel.isMatchStarted) {
             return DefaultTabController(
               length: 2,
               child: Scaffold(
-                appBar: new TabBar(
-                  tabs: [
-                    Tab(
-                      text: "Cockpit".toUpperCase(),
+                appBar: AppBar(
+                  title: Text("${widget.firstTeam.name} vs ${widget.secondTeam.name}"),
+                  flexibleSpace: Image.asset("assets/images/team_match.jpg", fit: BoxFit.cover,),
+                  backgroundColor: Colors.transparent,
+                  bottom: new TabBar(
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.white.withOpacity(0.5),
+                      tabs: [
+                        Tab(
+                          text: "Cockpit".toUpperCase(),
+                        ),
+                        Tab(
+                          text: "ScoreCard".toUpperCase(),
+                        ),
+                      ],
                     ),
-                    Tab(
-                      text: "ScoreCard".toUpperCase(),
-                    ),
-                  ],
                 ),
                 body: TabBarView(
                   children: <Widget>[

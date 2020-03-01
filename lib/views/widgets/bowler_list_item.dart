@@ -5,7 +5,7 @@ import 'package:score_board/helpers/constants.dart';
 import 'package:score_board/main.dart';
 import 'package:sqlcool/sqlcool.dart';
 
-extension on BALL_TYPE {
+extension on BallType {
   String get value => this.toString().split('.').last;
 }
 
@@ -54,7 +54,8 @@ class _BowlerListItemState extends State<BowlerListItem> {
             overs.forEach((over) => allBalls.addAll(over.ballDetails.balls));
 
             int validBalls = calculateValidBalls(allBalls);
-            int overForEconomy = (validBalls / 6).floor() == 0 ? 1 : (validBalls / 6).floor();
+            int overForEconomy =
+                (validBalls / 6).floor() == 0 ? 1 : (validBalls / 6).floor();
             int runs = calculateRuns(allBalls);
             return Row(
               children: <Widget>[
@@ -116,14 +117,23 @@ class _BowlerListItemState extends State<BowlerListItem> {
   }
 
   int calculateValidBalls(List<Ball> allBalls) {
-    final validBalls =
-        allBalls.where((ball) => ball.ballType == BALL_TYPE.VALID.value);
+    final validBalls = allBalls.where((ball) =>
+        ball.ballType == BallType.VALID.value ||
+        ball.ballType == BallType.B.value ||
+        ball.ballType == BallType.W.value);
     return validBalls.length;
   }
 
   int calculateRuns(List<Ball> allBalls) {
     int runs = 0;
-    allBalls.forEach((ball) => runs = runs + ball.run);
+    allBalls.forEach((ball){
+      if(ball.ballType == BallType.NB.value)
+        runs = runs + ball.run + 1;
+      else if(ball.ballType == BallType.WD.value)
+        runs = runs + ball.run + 1;
+      else if(ball.ballType == BallType.VALID.value)
+        runs = runs + ball.run;
+    });
     return runs;
   }
 }
