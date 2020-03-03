@@ -10,11 +10,12 @@ class PlayerTypeRadioGroup extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         Row(
           children: <Widget>[
             Radio<int>(
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               value: 0,
               groupValue: groupValue,
               onChanged: onChange,
@@ -25,6 +26,7 @@ class PlayerTypeRadioGroup extends StatelessWidget {
         Row(
           children: <Widget>[
             Radio<int>(
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               value: 1,
               groupValue: groupValue,
               onChanged: onChange,
@@ -35,6 +37,7 @@ class PlayerTypeRadioGroup extends StatelessWidget {
         Row(
           children: <Widget>[
             Radio<int>(
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               value: 2,
               groupValue: groupValue,
               onChanged: onChange,

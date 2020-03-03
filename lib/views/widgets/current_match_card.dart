@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:score_board/data/db_models/match.dart';
 import 'package:score_board/viewmodels/match_list_viewmodel.dart';
 import 'package:score_board/views/commons/decorations.dart';
+import 'package:score_board/views/commons/fade_page_route.dart';
 import 'package:score_board/views/screens/current_match_page.dart';
 
 class CurrentMatchCard extends StatelessWidget {
@@ -25,9 +26,8 @@ class CurrentMatchCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
+            Navigator.of(context).push(
+              FadePageRoute(
                 builder: (context) => CurrentMatchPage(
                   match: match,
                   firstTeam: firstTeam,

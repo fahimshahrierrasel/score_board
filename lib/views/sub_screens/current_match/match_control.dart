@@ -9,6 +9,7 @@ import 'package:score_board/views/commons/decorations.dart';
 import 'package:score_board/views/commons/fade_page_route.dart';
 import 'package:score_board/views/sub_screens/current_match/ball_by_ball_view.dart';
 import 'package:score_board/views/sub_screens/current_match/player_selector.dart';
+import 'package:score_board/views/sub_screens/current_match/wicket.dart';
 import 'package:score_board/views/widgets/batsman_list_item.dart';
 import 'package:score_board/views/widgets/batsman_list_item_header.dart';
 import 'package:score_board/views/widgets/bowler_list_item.dart';
@@ -166,7 +167,17 @@ class _MatchControlState extends State<MatchControl> {
         title: "Wicket",
         backgroundColor: Colors.red,
         textColor: Colors.white,
-        onTap: () {},
+        onTap: () async {
+          final extraRun = await showDialog(
+            barrierDismissible: false,
+            context: context,
+            builder: (BuildContext _context) {
+              // return object of type Dialog
+              return WicketDialog(
+              );
+            },
+          );
+        },
       ),
       ScoreControlButton(
         icon: Icons.undo,

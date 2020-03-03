@@ -2,13 +2,13 @@ import 'dart:convert';
 
 class WicketInfo {
   int bowlerId;
-  String type;
-  String assist;
+  int type;
+  int assistId;
 
   WicketInfo({
     this.bowlerId,
     this.type,
-    this.assist,
+    this.assistId,
   });
 
   factory WicketInfo.fromJson(String str) => WicketInfo.fromMap(json.decode(str));
@@ -18,12 +18,12 @@ class WicketInfo {
   factory WicketInfo.fromMap(Map<String, dynamic> json) => WicketInfo(
     bowlerId: json["bowler_id"],
     type: json["type"],
-    assist: json["assist"],
+    assistId: json["assist_by"],
   );
 
   Map<String, dynamic> toMap() => {
     "bowler_id": bowlerId,
     "type": type,
-    "assist": assist,
+    "assist_by": assistId,
   };
 }

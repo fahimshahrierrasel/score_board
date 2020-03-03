@@ -10,6 +10,9 @@ extension BallTypeValue on BallType {
 extension BallRunTypeValue on BallRunType {
   String get value => this.toString().split('.').last;
 }
+extension OutTypeValue on OutType {
+  String get value => this.toString().split('.').last;
+}
 
 
 extension RunTypeFromRun on int {

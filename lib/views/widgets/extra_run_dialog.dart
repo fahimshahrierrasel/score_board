@@ -16,6 +16,10 @@ class _ExtraRunDialogState extends State<ExtraRunDialog> {
 
   @override
   Widget build(BuildContext context) {
+    List<int> extraRuns = [0, 1, 2, 3, 4, 5, 6];
+    if(widget.extraType == ExtraType.B || widget.extraType == ExtraType.LB){
+      extraRuns.removeAt(0);
+    }
     return AlertDialog(
       contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
@@ -31,7 +35,7 @@ class _ExtraRunDialogState extends State<ExtraRunDialog> {
             spacing: 10,
             alignment: WrapAlignment.center,
             // Bye can not have 0 run
-            children: [0, 1, 2, 3, 4, 5, 6]
+            children: extraRuns
                 .reversed
                 .map(
                   (run) => FloatingActionButton(
