@@ -7,8 +7,14 @@ import 'package:score_board/views/commons/decorations.dart';
 
 class PlayerSelector extends StatelessWidget {
   final int teamId;
+  final List<int> disabledPlayers;
 
-  PlayerSelector({Key key, this.teamId}) : super(key: key);
+  PlayerSelector({
+    Key key,
+    this.teamId,
+    this.disabledPlayers = const [],
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final currentMatchViewModel = Provider.of<CurrentMatchViewModel>(context);
@@ -31,6 +37,7 @@ class PlayerSelector extends StatelessWidget {
             margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
             decoration: generalCardDecoration,
             child: ListTile(
+              enabled: !disabledPlayers.contains(players[index].id),
               title: Text(
                 "${players[index].firstName} ${players[index].lastName}",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),

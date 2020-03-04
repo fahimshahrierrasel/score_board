@@ -85,6 +85,7 @@ class _BallByBallViewState extends State<BallByBallView> {
                         itemBuilder: (_, index) {
                           final ball = allBalls[index];
                           bool isExtraRunBall = false;
+                          bool isWicket = false;
                           String ballText = "";
                           if (ball.ballType == BallType.VALID.value) {
                             ballText = ball.run.toString();
@@ -94,9 +95,12 @@ class _BallByBallViewState extends State<BallByBallView> {
                           } else if (ball.ballType == BallType.WD.value) {
                             isExtraRunBall = true;
                             ballText = ball.run > 0 ? "WD+${ball.run}" : "WD";
-                          }else if(ball.ballType == BallType.B.value){
+                          } else if (ball.ballType == BallType.B.value) {
                             isExtraRunBall = true;
                             ballText = "B+${ball.run}";
+                          } else if (ball.ballType == BallType.W.value) {
+                            isWicket = true;
+                            ballText = "W";
                           }
                           return Container(
                             margin: EdgeInsets.symmetric(horizontal: 5),
@@ -107,13 +111,18 @@ class _BallByBallViewState extends State<BallByBallView> {
                               shape: BoxShape.circle,
                               color: isExtraRunBall
                                   ? Colors.yellow
-                                  : Color(0xffdd8d8d8),
+                                  : isWicket ? Colors.red : Color(0xffdd8d8d8),
                             ),
                             child: Text(
                               ballText,
                               style: isExtraRunBall
                                   ? GoogleFonts.oswald(fontSize: 16)
-                                  : GoogleFonts.oswald(fontSize: 20),
+                                  : GoogleFonts.oswald(
+                                      fontSize: 20,
+                                      color: isWicket
+                                          ? Colors.white
+                                          : Colors.black,
+                                    ),
                             ),
                           );
                         },

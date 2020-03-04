@@ -15,16 +15,17 @@ class WicketDialog extends StatefulWidget {
 }
 
 class _WicketDialogState extends State<WicketDialog> {
-  int batsmanOutType = 0;
-  Player assistedBy;
-  int outBatsmanId = 0;
+  int _outType = 0;
+  Player _assistPlayerId;
+  int _batsmanId = 0;
 
   void outDecision() {
     final Map<String, dynamic> out = new Map();
-    out[OUT_TYPE] = outBatsmanId;
-    if(assistedBy != null)
-      out[ASSIST_ID] = assistedBy.id;
-    out[OUT_BATSMAN_ID] = outBatsmanId;
+    out[OUT_TYPE] = _outType;
+    if(_assistPlayerId != null)
+      out[ASSIST_ID] = _assistPlayerId.id;
+    out[OUT_BATSMAN_ID] = _batsmanId;
+    Navigator.of(context).pop(out);
   }
 
   @override
@@ -39,7 +40,7 @@ class _WicketDialogState extends State<WicketDialog> {
       contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
       content: Container(
-        height: MediaQuery.of(context).size.height * 0.4,
+        height: MediaQuery.of(context).size.height * 0.5,
         child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,16 +52,16 @@ class _WicketDialogState extends State<WicketDialog> {
                       width: MediaQuery.of(context).size.width,
                       child: Wrap(
                         direction: Axis.horizontal,
-                        alignment: WrapAlignment.center,
+                        alignment: WrapAlignment.start,
                         children: OutType.values
                             .map(
                               (outType) => RadioWithTitle(
                                 title: "${outType.value}",
                                 value: outType.index,
-                                groupValue: batsmanOutType,
+                                groupValue: _outType,
                                 onChange: (num) {
                                   setState(() {
-                                    batsmanOutType = num;
+                                    _outType = num;
                                   });
                                 },
                               ),
@@ -71,7 +72,7 @@ class _WicketDialogState extends State<WicketDialog> {
                     SizedBox(
                       height: 10,
                     ),
-                    if (OutType.CAUGHT.index == batsmanOutType)
+                    if (OutType.CAUGHT.index == _outType)
                       Container(
                         width: MediaQuery.of(context).size.width,
                         child: Column(
@@ -84,7 +85,7 @@ class _WicketDialogState extends State<WicketDialog> {
                             ),
                             DropdownButton<Player>(
                               isExpanded: true,
-                              value: assistedBy,
+                              value: _assistPlayerId,
                               items: fielders
                                   .map(
                                     (player) => DropdownMenuItem<Player>(
@@ -96,14 +97,14 @@ class _WicketDialogState extends State<WicketDialog> {
                                   .toList(),
                               onChanged: (updatedItem) {
                                 setState(() {
-                                  assistedBy = updatedItem;
+                                  _assistPlayerId = updatedItem;
                                 });
                               },
                             )
                           ],
                         ),
                       ),
-                    if (OutType.RUN.index == batsmanOutType)
+                    if (OutType.RUN.index == _outType)
                       Container(
                         width: MediaQuery.of(context).size.width,
                         child: Column(
@@ -117,24 +118,24 @@ class _WicketDialogState extends State<WicketDialog> {
                             Wrap(
                               children: <Widget>[
                                 RadioWithTitle(
-                                  value: currentMatchViewModel.firstBatsman.id,
+                                  value: 0,
                                   title:
                                       "${currentMatchViewModel.firstBatsman.firstName} ${currentMatchViewModel.firstBatsman.lastName}",
-                                  groupValue: outBatsmanId,
+                                  groupValue: _batsmanId,
                                   onChange: (newOutPlayer) {
                                     setState(() {
-                                      outBatsmanId = newOutPlayer;
+                                      _batsmanId = newOutPlayer;
                                     });
                                   },
                                 ),
                                 RadioWithTitle(
-                                  value: currentMatchViewModel.secondBatsman.id,
+                                  value: 1,
                                   title:
                                       "${currentMatchViewModel.secondBatsman.firstName} ${currentMatchViewModel.secondBatsman.lastName}",
-                                  groupValue: outBatsmanId,
+                                  groupValue: _batsmanId,
                                   onChange: (newOutPlayer) {
                                     setState(() {
-                                      outBatsmanId = newOutPlayer;
+                                      _batsmanId = newOutPlayer;
                                     });
                                   },
                                 )
@@ -147,7 +148,7 @@ class _WicketDialogState extends State<WicketDialog> {
                             ),
                             DropdownButton<Player>(
                               isExpanded: true,
-                              value: assistedBy,
+                              value: _assistPlayerId,
                               items: fielders
                                   .map(
                                     (player) => DropdownMenuItem<Player>(
@@ -159,7 +160,7 @@ class _WicketDialogState extends State<WicketDialog> {
                                   .toList(),
                               onChanged: (updatedItem) {
                                 setState(() {
-                                  assistedBy = updatedItem;
+                                  _assistPlayerId = updatedItem;
                                 });
                               },
                             )

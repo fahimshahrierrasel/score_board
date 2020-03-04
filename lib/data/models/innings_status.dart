@@ -10,6 +10,9 @@ class InningsStatus {
   int nextBatsmanPosition;
   int strikeBatsmanId;
   int currentOverId;
+  int lastOverBowlerId;
+  Map<String, int> bowlerOvers;
+  List<int> outBatsman;
 
   InningsStatus({
     this.totalRun = 0,
@@ -21,6 +24,9 @@ class InningsStatus {
     this.nextBatsmanPosition,
     this.strikeBatsmanId,
     this.currentOverId,
+    this.lastOverBowlerId,
+    this.bowlerOvers,
+    this.outBatsman,
   });
 
   factory InningsStatus.fromJson(String str) =>
@@ -29,38 +35,32 @@ class InningsStatus {
   String toJson() => json.encode(toMap());
 
   factory InningsStatus.fromMap(Map<String, dynamic> json) => InningsStatus(
-        totalRun: json["total_run"] == null ? null : json["total_run"],
-        totalWicket: json["total_wicket"] == null ? null : json["total_wicket"],
-        totalBall: json["total_ball"] == null ? null : json["total_ball"],
-        firstBatsmanId:
-            json["first_batsman_id"] == null ? null : json["first_batsman_id"],
-        secondBatsmanId: json["second_batsman_id"] == null
-            ? null
-            : json["second_batsman_id"],
-        currentBowlerId: json["current_bowler_id"] == null
-            ? null
-            : json["current_bowler_id"],
-        nextBatsmanPosition: json["next_batsman_position"] == null
-            ? null
-            : json["next_batsman_position"],
-        strikeBatsmanId: json["strike_batsman_id"] == null
-            ? null
-            : json["strike_batsman_id"],
-        currentOverId: json["currentOverId"] == null
-            ? null
-            : json["currentOverId"],
+        totalRun: json["total_run"] ?? 0,
+        totalWicket: json["total_wicket"] ?? 0,
+        totalBall: json["total_ball"] ?? 0,
+        firstBatsmanId: json["first_batsman_id"] ?? 0,
+        secondBatsmanId: json["second_batsman_id"] ?? 0,
+        currentBowlerId: json["current_bowler_id"] ?? 0,
+        nextBatsmanPosition: json["next_batsman_position"] ?? 0,
+        strikeBatsmanId: json["strike_batsman_id"] ?? 0,
+        currentOverId: json["current_over_id"] ?? 0,
+        lastOverBowlerId: json["last_over_bowler_id"] ?? 0,
+        bowlerOvers: Map<String, int>.from(json["bowler_overs"]) ?? Map<String, int>(),
+        outBatsman: List<int>.from(json['out_batsman']) ?? [],
       );
 
   Map<String, dynamic> toMap() => {
-        "total_run": totalRun == null ? null : totalRun,
-        "total_wicket": totalWicket == null ? null : totalWicket,
-        "total_ball": totalBall == null ? null : totalBall,
-        "first_batsman_id": firstBatsmanId == null ? null : firstBatsmanId,
-        "second_batsman_id": secondBatsmanId == null ? null : secondBatsmanId,
-        "current_bowler_id": currentBowlerId == null ? null : currentBowlerId,
-        "next_batsman_position":
-            nextBatsmanPosition == null ? null : nextBatsmanPosition,
-        "strike_batsman_id": strikeBatsmanId == null ? null : strikeBatsmanId,
-        "currentOverId": currentOverId == null ? null : currentOverId
+        "total_run": totalRun ?? 0,
+        "total_wicket": totalWicket ?? 0,
+        "total_ball": totalBall ?? 0,
+        "first_batsman_id": firstBatsmanId ?? 0,
+        "second_batsman_id": secondBatsmanId ?? 0,
+        "current_bowler_id": currentBowlerId ?? 0,
+        "next_batsman_position": nextBatsmanPosition ?? 0,
+        "strike_batsman_id": strikeBatsmanId ?? 0,
+        "current_over_id": currentOverId ?? 0,
+        "last_over_bowler_id": lastOverBowlerId ?? 0,
+        "bowler_overs": bowlerOvers ?? Map<String, int>(),
+        "out_batsman": outBatsman ?? [],
       };
 }

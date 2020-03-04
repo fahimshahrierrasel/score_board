@@ -90,8 +90,11 @@ class _MatchControlState extends State<MatchControl> {
                                   final player = await Navigator.of(context)
                                       .push(FadePageRoute(
                                     builder: (context) => PlayerSelector(
-                                        teamId: currentMatchViewModel
-                                            .currentInnings.battingTeamId),
+                                      teamId: currentMatchViewModel
+                                          .currentInnings.battingTeamId,
+                                      disabledPlayers:
+                                          currentMatchViewModel.outBatsman,
+                                    ),
                                     fullscreenDialog: true,
                                   ));
                                   await currentMatchViewModel
@@ -130,8 +133,12 @@ class _MatchControlState extends State<MatchControl> {
                                 final player = await Navigator.of(context)
                                     .push(FadePageRoute(
                                   builder: (context) => PlayerSelector(
-                                      teamId: currentMatchViewModel
-                                          .currentInnings.bowlingTeamId),
+                                    teamId: currentMatchViewModel
+                                        .currentInnings.bowlingTeamId,
+                                    disabledPlayers: [
+                                      currentMatchViewModel.lastBowlerId
+                                    ],
+                                  ),
                                   fullscreenDialog: true,
                                 ));
                                 await currentMatchViewModel.setBowler(player);
@@ -168,15 +175,15 @@ class _MatchControlState extends State<MatchControl> {
         backgroundColor: Colors.red,
         textColor: Colors.white,
         onTap: () async {
-          final extraRun = await showDialog(
+          final outDetails = await showDialog(
             barrierDismissible: false,
             context: context,
             builder: (BuildContext _context) {
               // return object of type Dialog
-              return WicketDialog(
-              );
+              return WicketDialog();
             },
           );
+          currentMatchViewModel.outABatsman(outDetails);
         },
       ),
       ScoreControlButton(
