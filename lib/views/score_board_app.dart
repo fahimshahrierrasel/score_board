@@ -32,12 +32,14 @@ class _ScoreBoardAppState extends State<ScoreBoardApp> {
       providers: [
         ChangeNotifierProvider<MatchConfigViewModel>(
           create: (_) => MatchConfigViewModel(),
+          lazy: true,
         ),
         ChangeNotifierProvider<MatchListViewModel>(
           create: (_) => MatchListViewModel(),
         ),
         ChangeNotifierProvider<CurrentMatchViewModel>(
           create: (_) => CurrentMatchViewModel(),
+          lazy: true,
         )
       ],
       child: MaterialApp(

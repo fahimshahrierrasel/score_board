@@ -116,7 +116,7 @@ class _BallByBallViewState extends State<BallByBallView> {
                             child: Text(
                               ballText,
                               style: isExtraRunBall
-                                  ? GoogleFonts.oswald(fontSize: 16)
+                                  ? GoogleFonts.oswald(fontSize: 14)
                                   : GoogleFonts.oswald(
                                       fontSize: 20,
                                       color: isWicket

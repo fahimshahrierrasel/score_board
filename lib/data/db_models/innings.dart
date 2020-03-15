@@ -11,6 +11,7 @@ class Innings with DbModel {
   final int number;
   final int battingTeamId;
   final int bowlingTeamId;
+  bool isComplete;
   InningsStatus inningsStatus;
 
   Innings(
@@ -19,6 +20,7 @@ class Innings with DbModel {
       this.number,
       this.battingTeamId,
       this.bowlingTeamId,
+      this.isComplete = false,
       this.inningsStatus});
 
   @override
@@ -33,7 +35,8 @@ class Innings with DbModel {
         'number': number,
         'batting_team_id': battingTeamId,
         'bowling_team_id': bowlingTeamId,
-        "innings_status": inningsStatus.toJson()
+        'is_complete': isComplete,
+        "innings_status": inningsStatus.toJson(),
       };
 
   @override
@@ -43,6 +46,7 @@ class Innings with DbModel {
         number: map['number'] as int,
         battingTeamId: map['batting_team_id'] as int,
         bowlingTeamId: map['bowling_team_id'] as int,
+        isComplete: map['is_complete'] == 'true',
         inningsStatus: InningsStatus.fromJson(map["innings_status"]),
       );
 }

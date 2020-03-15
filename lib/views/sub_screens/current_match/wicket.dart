@@ -22,8 +22,7 @@ class _WicketDialogState extends State<WicketDialog> {
   void outDecision() {
     final Map<String, dynamic> out = new Map();
     out[OUT_TYPE] = _outType;
-    if(_assistPlayerId != null)
-      out[ASSIST_ID] = _assistPlayerId.id;
+    if (_assistPlayerId != null) out[ASSIST_ID] = _assistPlayerId.id;
     out[OUT_BATSMAN_ID] = _batsmanId;
     Navigator.of(context).pop(out);
   }
@@ -31,10 +30,23 @@ class _WicketDialogState extends State<WicketDialog> {
   @override
   Widget build(BuildContext context) {
     final currentMatchViewModel = Provider.of<CurrentMatchViewModel>(context);
-    final fielders = currentMatchViewModel.currentInnings.bowlingTeamId ==
+    final fieldersId = currentMatchViewModel.currentInnings.bowlingTeamId ==
             currentMatchViewModel.firstTeam.id
-        ? currentMatchViewModel.firstTeamPlayers
-        : currentMatchViewModel.secondTeamPlayers;
+        ? currentMatchViewModel.currentMatch.players.teamOnePlayers
+        : currentMatchViewModel.currentMatch.players.teamTwoPlayers;
+
+    final fielders = currentMatchViewModel.players
+        .where((player) => fieldersId.contains(player.id))
+        .toList();
+
+    final firstBatsman = currentMatchViewModel.firstBatsmanBatting != null
+        ? currentMatchViewModel
+            .getPlayerById(currentMatchViewModel.firstBatsmanBatting.playerId)
+        : Player();
+    final secondBatsman = currentMatchViewModel.secondBatsmanBatting != null
+        ? currentMatchViewModel
+            .getPlayerById(currentMatchViewModel.secondBatsmanBatting.playerId)
+        : Player();
 
     return AlertDialog(
       contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -120,7 +132,7 @@ class _WicketDialogState extends State<WicketDialog> {
                                 RadioWithTitle(
                                   value: 0,
                                   title:
-                                      "${currentMatchViewModel.firstBatsman.firstName} ${currentMatchViewModel.firstBatsman.lastName}",
+                                      "${firstBatsman.firstName} ${firstBatsman.lastName}",
                                   groupValue: _batsmanId,
                                   onChange: (newOutPlayer) {
                                     setState(() {
@@ -131,7 +143,7 @@ class _WicketDialogState extends State<WicketDialog> {
                                 RadioWithTitle(
                                   value: 1,
                                   title:
-                                      "${currentMatchViewModel.secondBatsman.firstName} ${currentMatchViewModel.secondBatsman.lastName}",
+                                      "${secondBatsman.firstName} ${secondBatsman.lastName}",
                                   groupValue: _batsmanId,
                                   onChange: (newOutPlayer) {
                                     setState(() {

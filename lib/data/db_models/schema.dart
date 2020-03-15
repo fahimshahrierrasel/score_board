@@ -57,6 +57,7 @@ final inningsTable = DbTable(inningsTableName)
   ..integer("batting_team_id")
   ..integer("bowling_team_id")
   ..integer('number')
+  ..boolean("is_complete", defaultValue: false)
   ..varchar("innings_status");
 
 const battingTableName = "battings";

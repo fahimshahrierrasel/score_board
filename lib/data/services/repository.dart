@@ -56,7 +56,7 @@ class Repository {
     return inningsIds;
   }
 
-  Future<void> updateInnings(Innings updatedInnings) async {
+  Future<void> updateInnings(Innings updatedInnings) {
     return dbProvider.updateInnings(updatedInnings);
   }
 
@@ -70,5 +70,9 @@ class Repository {
 
   Future<void> updateOver(Over over){
     return dbProvider.updateOver(over);
+  }
+
+  Future<void> updateMatch(Match match) {
+    return dbProvider.updateMatch(match);
   }
 }

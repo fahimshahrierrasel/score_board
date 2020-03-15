@@ -89,6 +89,10 @@ class DbProvider implements Source, Cache {
     return match.sqlInsert();
   }
 
+  Future<void> updateMatch(Match updatedMatch){
+    return updatedMatch.sqlUpdate();
+  }
+
   @override
   Future<int> insertSeries(Series series) {
     return series.sqlInsert();

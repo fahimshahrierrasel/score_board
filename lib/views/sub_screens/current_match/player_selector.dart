@@ -22,9 +22,13 @@ class PlayerSelector extends StatelessWidget {
         ? currentMatchViewModel.firstTeam
         : currentMatchViewModel.secondTeam;
 
-    final players = currentMatchViewModel.firstTeam.id == teamId
-        ? currentMatchViewModel.firstTeamPlayers
-        : currentMatchViewModel.secondTeamPlayers;
+    final playersId = currentMatchViewModel.firstTeam.id == teamId
+        ? currentMatchViewModel.currentMatch.players.teamOnePlayers
+        : currentMatchViewModel.currentMatch.players.teamTwoPlayers;
+
+    final players = currentMatchViewModel.players
+        .where((player) => playersId.contains(player.id))
+        .toList();
 
     return Scaffold(
       appBar: AppBar(

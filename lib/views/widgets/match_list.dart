@@ -27,6 +27,7 @@ class MatchList extends StatelessWidget {
                     );
                   }else{
                     return PreviousMatchCard(
+                      match: snapshot.data[index],
                     );
                   }
                 },

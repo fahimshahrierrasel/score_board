@@ -16,7 +16,11 @@ class MatchListViewModel extends BaseViewModel {
 
   Future<List<Match>> getMatchList(MatchStatus matchStatus) async {
     if(matchStatus == MatchStatus.CURRENT)
-      return matches.where((match) => match.result.winningTeam == null).toList();
-    return matches.where((match) => match.result.winningTeam != null).toList();
+      return matches.where((match) => match.result.winBy == null).toList();
+    return matches.where((match) => match.result.winBy != null).toList();
+  }
+
+  Future<List<Innings>> getMatchInningsBy(matchId) {
+    return repository.fetchInnings(matchId);
   }
 }

@@ -35,16 +35,16 @@ class _DeveloperCenterState extends State<DeveloperCenter>
           new TabBar(
             controller: _tabController,
             tabs: [
-              new Tab(text: "Shared Preferences"),
               new Tab(text: "SQLite Databases"),
+              new Tab(text: "Shared Preferences"),
             ],
           ),
           Expanded(
             child: Container(
               child: TabBarView(
                 children: [
-                  Container(),
                   DatabaseViewer(),
+                  Container(),
                 ],
                 controller: _tabController,
               ),
@@ -133,7 +133,7 @@ class _DatabaseViewerState extends State<DatabaseViewer>
   final players =
       r"INSERT INTO players(id,first_name,last_name,type,team_id) VALUES (1,'Rahim','Alam',2,1),(2,'Al Amin','Khan',2,1),(3,'Rafiq','Uddin',2,1),(4,'Rabiul','Awal',2,2),(5,'Fahim','Shahrier',2,2),(6,'Salam','Uddin',2,2)";
   final matches =
-      """INSERT INTO matches(id,series_id,configuration,teams,players,toss,result) VALUES (1,0,'{"players_per_team":3,"total_overs":8,"per_bowler":3}','{"team_one_id":1,"team_two_id":2}','{"team_one_players":[1,2,3],"team_two_players":[4,5,6]}','{"team_won":1,"decision":"BATTING"}','{"winning_team":null,"win_by":null}')""";
+      """INSERT INTO matches(id,series_id,configuration,teams,players,toss,result) VALUES (1,0,'{"players_per_team":3,"total_overs":3,"per_bowler":2}','{"team_one_id":1,"team_two_id":2}','{"team_one_players":[1,2,3],"team_two_players":[4,5,6]}','{"team_won":1,"decision":"BATTING"}','{"winning_team":null,"win_by":null}')""";
 }
 
 class TableDataList extends StatefulWidget {

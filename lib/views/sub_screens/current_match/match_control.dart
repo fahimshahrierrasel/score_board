@@ -45,16 +45,12 @@ class _MatchControlState extends State<MatchControl> {
                         padding: EdgeInsets.all(10),
                         child: ExpandablePanel(
                           collapsed: Container(
-                            child: ScoreBoard(
-                              currentMatchViewModel: currentMatchViewModel,
-                            ),
+                            child: ScoreBoard(),
                           ),
                           expanded: Column(
                             children: <Widget>[
                               Container(
-                                child: ScoreBoard(
-                                  currentMatchViewModel: currentMatchViewModel,
-                                ),
+                                child: ScoreBoard(),
                               ),
                               SizedBox(
                                 height: 20,
@@ -82,9 +78,10 @@ class _MatchControlState extends State<MatchControl> {
                           children: <Widget>[
                             BatsmanListItemHeader(
                               onTap: () async {
-                                if (currentMatchViewModel.firstBatsman ==
+                                if (currentMatchViewModel.firstBatsmanBatting ==
                                         null ||
-                                    currentMatchViewModel.secondBatsman ==
+                                    currentMatchViewModel
+                                            .secondBatsmanBatting ==
                                         null) {
                                   // TODO handle player not selected
                                   final player = await Navigator.of(context)
@@ -92,8 +89,8 @@ class _MatchControlState extends State<MatchControl> {
                                     builder: (context) => PlayerSelector(
                                       teamId: currentMatchViewModel
                                           .currentInnings.battingTeamId,
-                                      disabledPlayers:
-                                          currentMatchViewModel.outBatsman,
+                                      disabledPlayers: currentMatchViewModel
+                                          .getDisableBatsman(),
                                     ),
                                     fullscreenDialog: true,
                                   ));
@@ -102,17 +99,29 @@ class _MatchControlState extends State<MatchControl> {
                                 }
                               },
                             ),
-                            if (currentMatchViewModel.firstBatsman != null)
+                            if (currentMatchViewModel.firstBatsmanBatting !=
+                                null)
                               BatsmanListItem(
-                                player: currentMatchViewModel.firstBatsman,
+                                key: Key(currentMatchViewModel
+                                    .firstBatsmanBatting.playerId
+                                    .toString()),
+                                player: currentMatchViewModel.getPlayerById(
+                                    currentMatchViewModel
+                                        .firstBatsmanBatting.playerId),
                                 innings: currentMatchViewModel.currentInnings,
                                 onStrike:
                                     currentMatchViewModel.firstBatsmanBatting ==
                                         currentMatchViewModel.strikeBatsman,
                               ),
-                            if (currentMatchViewModel.secondBatsman != null)
+                            if (currentMatchViewModel.secondBatsmanBatting !=
+                                null)
                               BatsmanListItem(
-                                player: currentMatchViewModel.secondBatsman,
+                                key: Key(currentMatchViewModel
+                                    .secondBatsmanBatting.playerId
+                                    .toString()),
+                                player: currentMatchViewModel.getPlayerById(
+                                    currentMatchViewModel
+                                        .secondBatsmanBatting.playerId),
                                 innings: currentMatchViewModel.currentInnings,
                                 onStrike: currentMatchViewModel
                                         .secondBatsmanBatting ==
@@ -135,9 +144,8 @@ class _MatchControlState extends State<MatchControl> {
                                   builder: (context) => PlayerSelector(
                                     teamId: currentMatchViewModel
                                         .currentInnings.bowlingTeamId,
-                                    disabledPlayers: [
-                                      currentMatchViewModel.lastBowlerId
-                                    ],
+                                    disabledPlayers: currentMatchViewModel
+                                        .getDisableBowler(),
                                   ),
                                   fullscreenDialog: true,
                                 ));
@@ -175,15 +183,18 @@ class _MatchControlState extends State<MatchControl> {
         backgroundColor: Colors.red,
         textColor: Colors.white,
         onTap: () async {
-          final outDetails = await showDialog(
+          await showDialog(
             barrierDismissible: false,
             context: context,
             builder: (BuildContext _context) {
               // return object of type Dialog
               return WicketDialog();
             },
-          );
-          currentMatchViewModel.outABatsman(outDetails);
+          ).then((outDetails) async {
+            if (outDetails != null) {
+              await currentMatchViewModel.outABatsman(outDetails);
+            }
+          });
         },
       ),
       ScoreControlButton(
@@ -207,9 +218,9 @@ class _MatchControlState extends State<MatchControl> {
               );
             },
           );
-          await currentMatchViewModel
-              .countExtraRun(ExtraType.WD, extraRun)
-              .catchError((e) {
+          try {
+            await currentMatchViewModel.countExtraRun(ExtraType.WD, extraRun);
+          } catch (e) {
             Scaffold.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -217,7 +228,7 @@ class _MatchControlState extends State<MatchControl> {
                 ),
               ),
             );
-          });
+          }
         },
       ),
       ScoreControlButton(
@@ -235,9 +246,9 @@ class _MatchControlState extends State<MatchControl> {
               );
             },
           );
-          await currentMatchViewModel
-              .countExtraRun(ExtraType.NB, extraRun)
-              .catchError((e) {
+          try {
+            await currentMatchViewModel.countExtraRun(ExtraType.NB, extraRun);
+          } catch (e) {
             Scaffold.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -245,7 +256,7 @@ class _MatchControlState extends State<MatchControl> {
                 ),
               ),
             );
-          });
+          }
         },
       ),
       ScoreControlButton(
@@ -263,9 +274,9 @@ class _MatchControlState extends State<MatchControl> {
               );
             },
           );
-          await currentMatchViewModel
-              .countExtraRun(ExtraType.B, extraRun)
-              .catchError((e) {
+          try {
+            await currentMatchViewModel.countExtraRun(ExtraType.B, extraRun);
+          } catch (e) {
             Scaffold.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -273,16 +284,16 @@ class _MatchControlState extends State<MatchControl> {
                 ),
               ),
             );
-          });
+          }
         },
       ),
       ScoreControlButton(
         title: "4",
         backgroundColor: Colors.green,
         onTap: () async {
-          await currentMatchViewModel
-              .countRunNBall(RunType.FOUR)
-              .catchError((e) {
+          try {
+            await currentMatchViewModel.countRunNBall(RunType.FOUR);
+          } catch (e) {
             Scaffold.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -290,16 +301,16 @@ class _MatchControlState extends State<MatchControl> {
                 ),
               ),
             );
-          });
+          }
         },
       ),
       ScoreControlButton(
         title: "6",
         backgroundColor: Colors.green,
         onTap: () async {
-          await currentMatchViewModel
-              .countRunNBall(RunType.SIX)
-              .catchError((e) {
+          try {
+            await currentMatchViewModel.countRunNBall(RunType.SIX);
+          } catch (e) {
             Scaffold.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -307,15 +318,15 @@ class _MatchControlState extends State<MatchControl> {
                 ),
               ),
             );
-          });
+          }
         },
       ),
       ScoreControlButton(
         title: "0",
         onTap: () async {
-          await currentMatchViewModel
-              .countRunNBall(RunType.ZERO)
-              .catchError((e) {
+          try {
+            await currentMatchViewModel.countRunNBall(RunType.ZERO);
+          } catch (e) {
             Scaffold.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -323,15 +334,15 @@ class _MatchControlState extends State<MatchControl> {
                 ),
               ),
             );
-          });
+          }
         },
       ),
       ScoreControlButton(
         title: "1",
         onTap: () async {
-          await currentMatchViewModel
-              .countRunNBall(RunType.ONE)
-              .catchError((e) {
+          try {
+            await currentMatchViewModel.countRunNBall(RunType.ONE);
+          } catch (e) {
             Scaffold.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -339,15 +350,15 @@ class _MatchControlState extends State<MatchControl> {
                 ),
               ),
             );
-          });
+          }
         },
       ),
       ScoreControlButton(
         title: "2",
         onTap: () async {
-          await currentMatchViewModel
-              .countRunNBall(RunType.TWO)
-              .catchError((e) {
+          try {
+            await currentMatchViewModel.countRunNBall(RunType.TWO);
+          } catch (e) {
             Scaffold.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -355,15 +366,15 @@ class _MatchControlState extends State<MatchControl> {
                 ),
               ),
             );
-          });
+          }
         },
       ),
       ScoreControlButton(
         title: "3",
         onTap: () async {
-          await currentMatchViewModel
-              .countRunNBall(RunType.THREE)
-              .catchError((e) {
+          try {
+            await currentMatchViewModel.countRunNBall(RunType.THREE);
+          } catch (e) {
             Scaffold.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -371,7 +382,7 @@ class _MatchControlState extends State<MatchControl> {
                 ),
               ),
             );
-          });
+          }
         },
       ),
     ];

@@ -1,18 +1,42 @@
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:score_board/viewmodels/current_match_viewmodel.dart';
+import 'package:score_board/helpers/extensions.dart';
 
 class ScoreBoard extends StatelessWidget {
-  final CurrentMatchViewModel currentMatchViewModel;
-  const ScoreBoard({
-    Key key, this.currentMatchViewModel,
-  }) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
+    final currentMatchViewModel = Provider.of<CurrentMatchViewModel>(context);
+    final team = currentMatchViewModel
+        .getTeamById(currentMatchViewModel.currentInnings.battingTeamId);
+
+    int runNeeded = 0;
+    String remainingBall = "";
+    double requiredRunRate = 0.0;
+    if (currentMatchViewModel.currentInnings.number == 2) {
+      runNeeded =
+          (currentMatchViewModel.matchInnings[0].inningsStatus.totalRun -
+                  currentMatchViewModel.currentInnings.inningsStatus.totalRun) +
+              1;
+      int ballLeft =
+          currentMatchViewModel.currentMatch.configuration.totalOvers * 6 -
+              currentMatchViewModel.currentInnings.inningsStatus.totalBall;
+      if (ballLeft < 100) {
+        remainingBall = "$ballLeft Balls.";
+      } else {
+        remainingBall = ballLeft.getOver();
+      }
+
+      final overs = ballLeft / 6.0;
+      requiredRunRate = runNeeded / overs;
+    }
+
     return Column(
       children: <Widget>[
+        if (currentMatchViewModel.currentInnings.number == 2)
+          Text("${team.name} need $runNeeded run in $remainingBall"),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -21,17 +45,14 @@ class ScoreBoard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  currentMatchViewModel
-                      .getTeamById(
-                          currentMatchViewModel.currentInnings.battingTeamId)
-                      .name,
+                  team.name,
                   style: GoogleFonts.oswald(fontSize: 36),
                 ),
                 Text(
                   "CRR: ${currentMatchViewModel.currentRunRate.toStringAsFixed(2)}",
                 ),
                 Text(
-                  "RRR: ${currentMatchViewModel.requiredRunRate.toStringAsFixed(2)}",
+                  "RRR: ${requiredRunRate.toStringAsFixed(2)}",
                 )
               ],
             ),
@@ -39,11 +60,11 @@ class ScoreBoard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: <Widget>[
                 Text(
-                  "${currentMatchViewModel.totalRun}/${currentMatchViewModel.totalWicket}",
+                  "${currentMatchViewModel.currentInnings.inningsStatus.totalRun}/${currentMatchViewModel.currentInnings.inningsStatus.totalWicket}",
                   style: GoogleFonts.oswald(fontSize: 48),
                 ),
                 Text(
-                  "${(currentMatchViewModel.totalBall / 6).floor()}${currentMatchViewModel.totalBall % 6 > 0 ? "." : ""}${currentMatchViewModel.totalBall % 6 > 0 ? (currentMatchViewModel.totalBall % 6) : ""} Overs",
+                  "${currentMatchViewModel.currentInnings.inningsStatus.totalBall.getOver()}",
                   style: GoogleFonts.oswald(fontSize: 20),
                 )
               ],
