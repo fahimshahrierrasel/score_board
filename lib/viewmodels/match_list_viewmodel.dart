@@ -23,4 +23,13 @@ class MatchListViewModel extends BaseViewModel {
   Future<List<Innings>> getMatchInningsBy(matchId) {
     return repository.fetchInnings(matchId);
   }
+
+  /// Check if the match is started
+  Future<bool> checkMatchStarted(int matchId) async {
+    final innings = await repository.fetchInnings(matchId);
+    if (innings.length < 1) {
+      return false;
+    }
+    return true;
+  }
 }

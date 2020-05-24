@@ -7,11 +7,10 @@ import 'package:score_board/views/commons/fade_page_route.dart';
 import 'package:score_board/views/screens/current_match_page.dart';
 
 class CurrentMatchCard extends StatelessWidget {
-  final isMatchRunning;
   final Match match;
 
-  const CurrentMatchCard({Key key, this.isMatchRunning = false, this.match})
-      : super(key: key);
+  const CurrentMatchCard({Key key, this.match}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final matchListViewModel = Provider.of<MatchListViewModel>(context);
@@ -56,22 +55,31 @@ class CurrentMatchCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Container(
-                        margin: EdgeInsets.symmetric(horizontal: 20),
-                        padding: EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                          color: isMatchRunning
-                              ? Colors.green
-                              : Theme.of(context).primaryColor,
-                          borderRadius: BorderRadius.circular(5.0),
-                        ),
-                        child: Text(
-                          "VS",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                          ),
-                        ),
+                      FutureBuilder<bool>(
+                        future: matchListViewModel.checkMatchStarted(match.id),
+                        builder: (_, snapshot) {
+                          var isRunning = false;
+                          if (snapshot.hasData) {
+                            isRunning = snapshot.data;
+                          }
+                          return Container(
+                            margin: EdgeInsets.symmetric(horizontal: 20),
+                            padding: EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: isRunning
+                                  ? Colors.green
+                                  : Theme.of(context).primaryColor,
+                              borderRadius: BorderRadius.circular(5.0),
+                            ),
+                            child: Text(
+                              "VS",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                       Expanded(
                         child: Text(

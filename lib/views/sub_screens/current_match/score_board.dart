@@ -33,6 +33,10 @@ class ScoreBoard extends StatelessWidget {
       requiredRunRate = runNeeded / overs;
     }
 
+    final currentRunRate = currentMatchViewModel.calculateRunRates(
+        currentMatchViewModel.currentInnings.inningsStatus.totalRun,
+        currentMatchViewModel.currentInnings.inningsStatus.totalBall);
+
     return Column(
       children: <Widget>[
         if (currentMatchViewModel.currentInnings.number == 2)
@@ -49,7 +53,7 @@ class ScoreBoard extends StatelessWidget {
                   style: GoogleFonts.oswald(fontSize: 36),
                 ),
                 Text(
-                  "CRR: ${currentMatchViewModel.currentRunRate.toStringAsFixed(2)}",
+                  "CRR: ${currentRunRate.toStringAsFixed(2)}",
                 ),
                 Text(
                   "RRR: ${requiredRunRate.toStringAsFixed(2)}",

@@ -20,10 +20,9 @@ class CurrentMatchViewModel extends BaseViewModel {
   Batting secondBatsmanBatting;
   Player currentBowler;
   Over currentOver;
-  double currentRunRate = 0.0;
-  double requiredRunRate = 0.0;
   int currentOverNumber = 1;
   Batting strikeBatsman;
+  UndoOptions undoOptions;
 
   void resetViewModel() {
     players = [];
@@ -33,6 +32,7 @@ class CurrentMatchViewModel extends BaseViewModel {
     currentOver = null;
     strikeBatsman = null;
     currentOverNumber = 1;
+    undoOptions = UndoOptions();
   }
 
   /// Get the players of the team by [teamId]
@@ -45,34 +45,47 @@ class CurrentMatchViewModel extends BaseViewModel {
 
   /// Count run and valid ball using the [runType]
   Future<void> countRunNBall(RunType runType) async {
+    if (isInningsComplete()) {
+      throw Exception("Innings Already Completed");
+    }
     if (firstBatsmanBatting == null || secondBatsmanBatting == null) {
       throw Exception("Either first or second batsman can not be empty");
     }
     if (currentBowler == null) {
       throw Exception("Bowler can not be empty");
     }
+
+    // Save undo Option
+    saveUndoOption();
+
     await batsmanRun(runType);
-    await overRun(runType.run(), BallType.VALID, BallRunType.BAT);
+    await overRun(
+      run: runType.run(),
+      ballType: BallType.VALID,
+      ballRunType: BallRunType.BAT,
+    );
     calculateBall();
     addRun(runType.run());
-    calculateRunRates();
     await saveInnings();
     notifyListeners();
-  }
-
-  void addRun(int run) {
-    currentInnings.inningsStatus.totalRun += run;
   }
 
   /// Count extra run with [extraType] and [additionalRun] which is run type and run score
   Future<void> countExtraRun(
       ExtraType extraType, Map<String, dynamic> additionalRun) async {
+    if (isInningsComplete()) {
+      throw Exception("Innings Already Completed");
+    }
     if (firstBatsmanBatting == null || secondBatsmanBatting == null) {
       throw Exception("Either first or second batsman can not be empty");
     }
     if (currentBowler == null) {
       throw Exception("Bowler can not be empty");
     }
+
+    // Save undo Option
+    saveUndoOption();
+
     int extraRun = 0;
     BallType ballType = BallType.VALID;
 
@@ -105,17 +118,72 @@ class CurrentMatchViewModel extends BaseViewModel {
       // For bye run > 0 rotate batsman
       tryBatsmanRotation(additionalExtraRun.getRunType());
     }
-    await overRun(additionalExtraRun, ballType,
-        (additionalRun[EXTRA_RUN_TYPE] as BallRunType));
+    print(additionalRun[EXTRA_RUN_TYPE]);
+    await overRun(
+      run: additionalExtraRun,
+      ballType: ballType,
+      ballRunType: (additionalRun[EXTRA_RUN_TYPE] as BallRunType),
+    );
 
     extraRun += additionalExtraRun;
 
     if (ballType == BallType.B) calculateBall();
 
     addRun(extraRun);
-    calculateRunRates();
     await saveInnings();
     notifyListeners();
+  }
+
+  /// Out a batsman with [outDetails]
+  Future<void> outABatsman(Map<String, dynamic> outDetails) async {
+    if (isInningsComplete()) {
+      throw Exception("Innings Already Completed");
+    }
+
+    if (firstBatsmanBatting == null || secondBatsmanBatting == null) {
+      throw Exception("Either first or second batsman can not be empty");
+    }
+    if (currentBowler == null) {
+      throw Exception("Bowler can not be empty");
+    }
+
+    WicketInfo wicketInfo = WicketInfo(
+      bowlerId: currentBowler.id,
+      assistId: outDetails[ASSIST_ID] ?? 0,
+      type: outDetails[OUT_TYPE],
+    );
+    List<int> outBatsman = [];
+    if (outDetails[OUT_BATSMAN_ID] == 0) {
+      outBatsman.add(firstBatsmanBatting.playerId);
+      strikeBatsman.wicketInfo = wicketInfo;
+      // Save undo Option
+      saveUndoOption(outBatsmanId: strikeBatsman.playerId);
+      await repository.upsertBatting(strikeBatsman);
+      strikeBatsman = null;
+      firstBatsmanBatting = null;
+    } else {
+      outBatsman.add(secondBatsmanBatting.playerId);
+      secondBatsmanBatting.wicketInfo = wicketInfo;
+      // Save undo Option
+      saveUndoOption(outBatsmanId: secondBatsmanBatting.playerId);
+      await repository.upsertBatting(secondBatsmanBatting);
+      secondBatsmanBatting = null;
+    }
+    await overRun(
+      run: 0,
+      ballType: BallType.W,
+      ballRunType: BallRunType.BAT,
+      hasWicket: true,
+    );
+    currentInnings.inningsStatus.totalWicket += 1;
+    currentInnings.inningsStatus.outBatsman.addAll(outBatsman);
+    calculateBall();
+    await saveInnings();
+    notifyListeners();
+  }
+
+  void addRun(int run) {
+    currentInnings.inningsStatus.totalRun += run;
   }
 
   /// call if the over is complete
@@ -139,61 +207,57 @@ class CurrentMatchViewModel extends BaseViewModel {
     }
   }
 
-  /// It will rotate batsman strike
-  /// If you only want to rotate batsman based on run use [tryBatsmanRotation]
-  void batsmanRotation() {
-    if (strikeBatsman == firstBatsmanBatting)
-      strikeBatsman = secondBatsmanBatting;
-    else
-      strikeBatsman = firstBatsmanBatting;
-  }
-
   /// Update the database for ball's [run], [ballType] and [ballRunType].
-  Future<void> overRun(int run, BallType ballType, BallRunType ballRunType,
-      {hasWicket = false}) async {
-    List<Ball> balls = currentOver.ballDetails.balls;
-    balls.add(Ball(
-      run: run,
-      ballType: ballType.value,
-      runType: ballRunType.value,
-      wicket: hasWicket,
-    ));
-
-    BallDetails ballDetails = BallDetails(balls: balls);
-
-    currentOver.ballDetails = ballDetails;
+  Future<void> overRun(
+      {int run = 0,
+      BallType ballType = BallType.VALID,
+      BallRunType ballRunType = BallRunType.BAT,
+      hasWicket = false,
+      undo = false}) async {
+    if (undo) {
+      currentOver.ballDetails.balls.removeLast();
+    } else {
+      currentOver.ballDetails.balls.add(Ball(
+        run: run,
+        ballType: ballType.value,
+        runType: ballRunType.value,
+        wicket: hasWicket,
+      ));
+    }
     await repository.updateOver(currentOver);
   }
 
   /// Update the database for batsman [runType]
-  Future<void> batsmanRun(RunType runType) async {
+  Future<void> batsmanRun(RunType runType, {bool undo = false}) async {
+    int ball = 1;
+    if (undo) ball = -1;
     final runDetails = strikeBatsman.runDetails;
     switch (runType) {
       case RunType.ZERO:
-        runDetails.zero += 1;
+        runDetails.zero += ball;
         break;
       case RunType.ONE:
-        runDetails.one += 1;
+        runDetails.one += ball;
         break;
       case RunType.TWO:
-        runDetails.two += 1;
+        runDetails.two += ball;
         break;
       case RunType.THREE:
-        runDetails.three += 1;
+        runDetails.three += ball;
         break;
       case RunType.FOUR:
-        runDetails.four += 1;
+        runDetails.four += ball;
         break;
       case RunType.FIVE:
-        runDetails.five += 1;
+        runDetails.five += ball;
         break;
       case RunType.SIX:
-        runDetails.six += 1;
+        runDetails.six += ball;
         break;
     }
     strikeBatsman.runDetails = runDetails;
     await repository.upsertBatting(strikeBatsman);
-    tryBatsmanRotation(runType);
+    if (!undo) tryBatsmanRotation(runType);
   }
 
   /// Try to rotate batsman based on RunType.
@@ -204,6 +268,15 @@ class CurrentMatchViewModel extends BaseViewModel {
         runType == RunType.FIVE) {
       batsmanRotation();
     }
+  }
+
+  /// It will rotate batsman strike
+  /// If you only want to rotate batsman based on run use [tryBatsmanRotation]
+  void batsmanRotation() {
+    if (strikeBatsman == firstBatsmanBatting)
+      strikeBatsman = secondBatsmanBatting;
+    else
+      strikeBatsman = firstBatsmanBatting;
   }
 
   /// Get team name by its [teamId]
@@ -251,28 +324,37 @@ class CurrentMatchViewModel extends BaseViewModel {
     currentInnings.inningsStatus.currentOverId =
         currentOver != null ? currentOver.id : 0;
 
-    final inningsComplete = isInningsComplete();
-    currentInnings.isComplete = inningsComplete;
+    await repository.updateInnings(currentInnings);
+  }
+
+  Future announceInningsComplete() async {
+    currentInnings.isComplete = true;
     await repository.updateInnings(currentInnings);
 
-    if (inningsComplete && currentInnings.number == 2) {
-      int winBy = matchInnings[0].inningsStatus.totalRun -
-          currentInnings.inningsStatus.totalRun;
-      if (winBy > 0) {
-        currentMatch.result.winningTeam = currentInnings.bowlingTeamId;
-        currentMatch.result.winBy = "$winBy runs";
-      } else {
-        int wicketRemaining = currentMatch.configuration.playersPerTeam -
-            currentInnings.inningsStatus.totalWicket -
-            1;
-        currentMatch.result.winningTeam = currentInnings.battingTeamId;
-        currentMatch.result.winBy = "$wicketRemaining wickets";
-      }
-      await repository.updateMatch(currentMatch);
+    if (currentInnings.number == 2) {
+      _calculateResult();
     }
   }
 
+  Future _calculateResult() async {
+    int winBy = matchInnings[0].inningsStatus.totalRun -
+        currentInnings.inningsStatus.totalRun;
+    if (winBy > 0) {
+      currentMatch.result.winningTeam = currentInnings.bowlingTeamId;
+      currentMatch.result.winBy = "$winBy runs";
+    } else {
+      int wicketRemaining = currentMatch.configuration.playersPerTeam -
+          currentInnings.inningsStatus.totalWicket -
+          1;
+      currentMatch.result.winningTeam = currentInnings.battingTeamId;
+      currentMatch.result.winBy = "$wicketRemaining wickets";
+    }
+    await repository.updateMatch(currentMatch);
+  }
+
   bool isInningsComplete() {
+    if (currentInnings.isComplete) return true;
+
     if (currentInnings.inningsStatus.totalBall ~/ 6 >=
             currentMatch.configuration.totalOvers ||
         currentInnings.inningsStatus.totalWicket >=
@@ -280,8 +362,8 @@ class CurrentMatchViewModel extends BaseViewModel {
       return true;
     }
     if (currentInnings.number == 2 &&
-        currentInnings.inningsStatus.totalRun >
-            matchInnings[0].inningsStatus.totalRun) {
+        (currentInnings.inningsStatus.totalRun >
+            matchInnings[0].inningsStatus.totalRun)) {
       return true;
     }
 
@@ -320,7 +402,6 @@ class CurrentMatchViewModel extends BaseViewModel {
       if (inningsStatus.currentOverId > 0) {
         currentOver = await repository.fetchOver(inningsStatus.currentOverId);
       }
-      calculateRunRates();
       notifyListeners();
     } on NoSuchMethodError catch (error) {
       print(error.stackTrace);
@@ -392,33 +473,6 @@ class CurrentMatchViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  Future<void> outABatsman(Map<String, dynamic> outDetails) async {
-    WicketInfo wicketInfo = WicketInfo(
-      bowlerId: currentBowler.id,
-      assistId: outDetails[ASSIST_ID] ?? 0,
-      type: outDetails[OUT_TYPE],
-    );
-    List<int> outBatsman = [];
-    if (outDetails[OUT_BATSMAN_ID] == 0) {
-      outBatsman.add(firstBatsmanBatting.playerId);
-      strikeBatsman.wicketInfo = wicketInfo;
-      await repository.upsertBatting(strikeBatsman);
-      strikeBatsman = null;
-      firstBatsmanBatting = null;
-    } else {
-      outBatsman.add(secondBatsmanBatting.playerId);
-      secondBatsmanBatting.wicketInfo = wicketInfo;
-      await repository.upsertBatting(secondBatsmanBatting);
-      secondBatsmanBatting = null;
-    }
-    await overRun(0, BallType.W, BallRunType.BAT, hasWicket: true);
-    currentInnings.inningsStatus.totalWicket += 1;
-    currentInnings.inningsStatus.outBatsman.addAll(outBatsman);
-    calculateBall();
-    await saveInnings();
-    notifyListeners();
-  }
-
   List<int> getDisableBatsman() {
     List<int> disableBatsman = [];
     if (firstBatsmanBatting != null)
@@ -456,10 +510,88 @@ class CurrentMatchViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  void calculateRunRates() {
-    final overs = (currentInnings.inningsStatus.totalBall ~/ 6) == 0
-        ? 1
-        : (currentInnings.inningsStatus.totalBall ~/ 6);
-    currentRunRate = currentInnings.inningsStatus.totalRun / overs.toDouble();
+  double calculateRunRates(int runs, int balls) {
+    final overs = (balls ~/ 6) == 0 ? 1 : (balls ~/ 6);
+    return runs / overs.toDouble();
+  }
+
+  Future<void> undoLastBall() async {
+    // Check undoOptions available
+    if (undoOptions == null || undoOptions.hasUndoOnce) {
+      throw Exception("Undo option is not ready yet play a ball first!!!");
+    }
+    // Check if the over is complete
+    if (currentOver == null)
+      currentOver = await repository.fetchOver(undoOptions.overId);
+    Ball lastBall = currentOver.ballDetails.balls.last;
+    // Update Over
+    await overRun(undo: true);
+
+    if (undoOptions.hasWicket && lastBall.ballType == "W")
+      await _undoWicket();
+    else if (lastBall.ballType == "VALID")
+      _undoValidBall(lastBall);
+    else
+      _undoExtraBall(lastBall);
+
+    undoOptions.hasUndoOnce = true;
+    await saveInnings();
+    notifyListeners();
+  }
+
+  void _undoExtraBall(Ball lastBall) {
+    if (lastBall.ballType == "B") {
+      currentInnings.inningsStatus.totalBall -= 1;
+    } else {
+      // Remove Wide/No-Ball extra run.
+      currentInnings.inningsStatus.totalRun -= 1;
+    }
+    _undoStrikeBatsman();
+    // Decrease extra run by batsman/bye
+    if (lastBall.runType == "BYE" &&
+        (lastBall.ballType == "B" || lastBall.ballType == "NB")) {
+      // Batsman will not get the run but ball will count on his name undo this
+      batsmanRun(0.getRunType(), undo: true);
+    } else if (lastBall.runType == "BAT")
+      batsmanRun(lastBall.run.getRunType(), undo: true);
+    currentInnings.inningsStatus.totalRun -= lastBall.run;
+  }
+
+  void _undoValidBall(Ball lastBall) {
+    _undoStrikeBatsman();
+    batsmanRun(lastBall.run.getRunType(), undo: true);
+    currentInnings.inningsStatus.totalBall -= 1;
+    currentInnings.inningsStatus.totalRun -= lastBall.run;
+  }
+
+  void _undoStrikeBatsman() {
+    if (undoOptions.strikeBatsmanId == firstBatsmanBatting.id)
+      strikeBatsman = firstBatsmanBatting;
+    else
+      strikeBatsman = secondBatsmanBatting;
+  }
+
+  Future _undoWicket() async {
+    final batting = await repository.fetchBatting(
+        undoOptions.outBatsmanId, currentInnings.id);
+    batting.wicketInfo = WicketInfo();
+    if (firstBatsmanBatting == null)
+      firstBatsmanBatting = batting;
+    else
+      secondBatsmanBatting = batting;
+    if (strikeBatsman == null) strikeBatsman = batting;
+    repository.upsertBatting(batting);
+    currentInnings.inningsStatus.totalWicket -= 1;
+    currentInnings.inningsStatus.totalBall -= 1;
+  }
+
+  void saveUndoOption({outBatsmanId = 0}) {
+    undoOptions.hasUndoOnce = false;
+    undoOptions.overId = currentInnings.inningsStatus.currentOverId;
+    undoOptions.strikeBatsmanId = strikeBatsman.playerId;
+    if (outBatsmanId > 0) {
+      undoOptions.hasWicket = true;
+      undoOptions.outBatsmanId = outBatsmanId;
+    }
   }
 }

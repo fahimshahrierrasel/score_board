@@ -201,7 +201,19 @@ class _MatchControlState extends State<MatchControl> {
         icon: Icons.undo,
         backgroundColor: Theme.of(context).primaryColor,
         textColor: Colors.white,
-        onTap: () {},
+        onTap: () async {
+          try {
+            await currentMatchViewModel.undoLastBall();
+          }catch(e){
+            Scaffold.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  e.toString(),
+                ),
+              ),
+            );
+          }
+        },
       ),
       ScoreControlButton(
         title: "WD",
